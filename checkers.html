@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHECKERS - WOFTR</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        body {
+            background-color: #000000;
+            color: #00BFFF;
+            font-family: 'VT323', 'Courier New', monospace;
+            font-size: 22px;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.2;
+        }
+
+        table.board {
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 26px;
+        }
+
+        table.board td {
+            width: 32px;
+            height: 32px;
+            text-align: center;
+            border: 1px solid #00BFFF;
+        }
+
+        .piece-red {
+            color: #FF3333;
+            font-weight: bold;
+        }
+
+        .piece-blue {
+            color: #00BFFF;
+            font-weight: bold;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .prompt {
+            color: #00BFFF;
+            margin-right: 0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: #00BFFF;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            outline: none;
+            width: auto;
+            min-width: 10px;
+            caret-color: transparent;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 12px;
+            animation: blink 1s step-end infinite;
+        }
+
+        .status {
+            margin-top: 20px;
+            color: #FFB000;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div>CHECKERS - WOFTR</div>
+        <div style="margin-top:10px;">
+            <span class="piece-red">RED (YOU)</span> vs <span class="piece-blue">BLUE (WOFTR)</span>
+        </div>
+        
+        <table class="board" id="board"></table>
+
+        <div class="input-wrapper">
+            <span class="prompt">></span>
+            <div class="input-container">
+                <input type="text" id="move" placeholder="MOVE (e.g. A2 to B3)" autofocus oninput="adjustWidth(this)">
+                <span class="cursor">_</span>
+            </div>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        function adjustWidth(input) {
+            input.style.width = ((input.value.length + 1) * 12) + 'px';
+        }
+
+        let board = [
+            [' ','B',' ','B',' ','B',' ','B'],
+            ['B',' ','B',' ','B',' ','B',' '],
+            [' ','B',' ','B',' ','B',' ','B'],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            [' ',' ',' ',' ',' ',' ',' ',' '],
+            ['R',' ','R',' ','R',' ','R',' '],
+            [' ','R',' ','R',' ','R',' ','R'],
+            ['R',' ','R',' ','R',' ','R',' ']
+        ];
+
+        function drawBoard() {
+            let html = '';
+            for (let y = 0; y < 8; y++) {
+                html += '<tr>';
+                for (let x = 0; x < 8; x++) {
+                    let cell = '';
+                    if (board[y][x] === 'R') {
+                        cell = '<span class="piece-red">R</span>';
+                    } else if (board[y][x] === 'B') {
+                        cell = '<span class="piece-blue">B</span>';
+                    }
+                    html += '<td>' + cell + '</td>';
+                }
+                html += '</tr>';
+            }
+            document.getElementById('board').innerHTML = html;
+        }
+
+        function makeMove(from, to) {
+            const fx = from.charCodeAt(0) - 65;
+            const fy = parseInt(from[1]) - 1;
+            const tx = to.charCodeAt(0) - 65;
+            const ty = parseInt(to[1]) - 1;
+
+            if (board[fy][fx] === 'R' && board[ty][tx] === ' ') {
+                board[ty][tx] = 'R';
+                board[fy][fx] = ' ';
+                document.getElementById('status').innerHTML = 'MOVE ACCEPTED';
+                drawBoard();
+                setTimeout(woftrMove, 700);
+            } else {
+                document.getElementById('status').innerHTML = 'INVALID MOVE';
+            }
+        }
+
+        function woftrMove() {
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
+                    if (board[y][x] === 'B') {
+                        if (y > 0 && x < 7 && board[y-1][x+1] === ' ') {
+                            board[y-1][x+1] = 'B';
+                            board[y][x] = ' ';
+                            document.getElementById('status').innerHTML = 'WOFTR MOVED';
+                            drawBoard();
+                            return;
+                        }
+                        if (y > 0 && x > 0 && board[y-1][x-1] === ' ') {
+                            board[y-1][x-1] = 'B';
+                            board[y][x] = ' ';
+                            document.getElementById('status').innerHTML = 'WOFTR MOVED';
+                            drawBoard();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        document.getElementById('move').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const val = this.value.toUpperCase().trim();
+                this.value = '';
+
+                if (val.includes('TO')) {
+                    const parts = val.split('TO');
+                    const from = parts[0].trim();
+                    const to = parts[1].trim();
+                    makeMove(from, to);
+                } else {
+                    document.getElementById('status').innerHTML = 'USE FORMAT: A2 TO B3';
+                }
+            }
+        });
+
+        drawBoard();
+    </script>
+</body>
+</html>
