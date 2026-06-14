@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOFTR — CHESS</title>
+<link rel="stylesheet" href="woftr.css">
+<style>
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    width: min(560px, 90vw);
+    aspect-ratio: 1;
+    border: 1px solid var(--cyan-dim);
+    margin: 0.6em 0;
+    box-shadow: 0 0 18px rgba(0,255,255,0.2);
+  }
+  .sq {
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(22px, 5vw, 40px);
+    cursor: pointer; position: relative;
+    user-select: none;
+  }
+  .sq.light { background: rgba(0,255,255,0.08); }
+  .sq.dark  { background: rgba(0,255,255,0.02); }
+  .sq.sel   { background: rgba(0,255,255,0.35) !important; }
+  .sq.move::after {
+    content: ''; position: absolute;
+    width: 28%; height: 28%; border-radius: 50%;
+    background: rgba(0,255,255,0.5); box-shadow: 0 0 8px var(--cyan);
+  }
+  .sq.cap { box-shadow: inset 0 0 0 2px var(--red); }
+  .pw { color: #d8ffff; text-shadow: 0 0 6px #fff, 0 0 14px var(--cyan); }
+  .pb { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-dim); opacity: 0.85; }
+  #status { min-height: 1.4em; margin-top: 0.3em; }
+</style>
+</head>
+<body>
+<div class="console">
+  <div class="line title bold">CHESS</div>
+  <div class="line muted">YOU ARE WHITE — WOPR IS BLACK</div>
+  <hr class="divider">
+  <div id="board"></div>
+  <div id="status" class="line"></div>
+  <div>
+    <button class="btn" id="new">NEW GAME</button>
+    <button class="btn" id="undo">UNDO</button>
+  </div>
+  <div class="nav">&gt; <a href="index.html">RETURN TO MENU</a></div>
+  <div class="hint">CLICK A PIECE, THEN CLICK A HIGHLIGHTED SQUARE. ESC = MENU</div>
+</div>
+<div id="sound-note">PRESS ANY KEY TO ENABLE SOUND</div>
+<script src="woftr.js"></script>
+<script>
+// pieces: uppercase = white (you), lowercase = black (WOPR)
+const GLYPH={K:'\u2654',Q:'\u2655',R:'\u2656',B:'\u2657',N:'\u2658',P:'\u2659',
+             k:'\u265A',q:'\u265B',r:'\u265C',b:'\u265D',n:'\u265E',p:'\u265F'};
+const START=[
+  'rnbqkbnr',
+  'pppppppp',
+  '........',
+  '........',
+  '........',
+  '........',
+  'PPPPPPPP',
+  'RNBQKBNR'
+].map(r=>r.split(''));
+
+let board, sel, history, gameOver;
+const boardEl=document.getElementById('board');
+const statusEl=document.getElementById('status');
+
+function clone(b){return b.map(r=>r.slice());}
+function isWhite(p){return p!=='.'&&p===p.toUpperCase();}
+function isBlack(p){return p!=='.'&&p===p.toLowerCase();}
+function inside(r,c){return r>=0&&r<8&&c>=0&&c<8;}
+
+function newGame(){
+  board=clone(START); sel=null; history=[]; gameOver=false;
+  render(); setStatus('YOUR MOVE.');
+}
+
+// generate pseudo-legal moves for piece at r,c
+function moves(b,r,c){
+  const p=b[r][c]; if(p==='.')return [];
+  const white=isWhite(p); const out=[];
+  const add=(rr,cc)=>{ if(!inside(rr,cc))return false;
+    const t=b[rr][cc];
+    if(t==='.'){out.push([rr,cc]);return true;}
+    if(white!==isWhite(t)){out.push([rr,cc]);} return false; };
+  const ray=(dirs)=>{ for(const [dr,dc] of dirs){ let rr=r+dr,cc=c+dc;
+    while(inside(rr,cc)){ const t=b[rr][cc];
+      if(t==='.'){out.push([rr,cc]);}
+      else{ if(white!==isWhite(t)) out.push([rr,cc]); break; }
+      rr+=dr;cc+=dc; } } };
+  const t=p.toUpperCase();
+  if(t==='P'){
+    const dir=white?-1:1, start=white?6:1;
+    if(inside(r+dir,c)&&b[r+dir][c]==='.'){ out.push([r+dir,c]);
+      if(r===start&&b[r+2*dir][c]==='.') out.push([r+2*dir,c]); }
+    for(const dc of [-1,1]){ const rr=r+dir,cc=c+dc;
+      if(inside(rr,cc)&&b[rr][cc]!=='.'&&white!==isWhite(b[rr][cc])) out.push([rr,cc]); }
+  } else if(t==='N'){
+    for(const [dr,dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) add(r+dr,c+dc);
+  } else if(t==='B'){ ray([[-1,-1],[-1,1],[1,-1],[1,1]]); }
+  else if(t==='R'){ ray([[-1,0],[1,0],[0,-1],[0,1]]); }
+  else if(t==='Q'){ ray([[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]]); }
+  else if(t==='K'){ for(const dr of [-1,0,1])for(const dc of [-1,0,1]) if(dr||dc) add(r+dr,c+dc); }
+  return out;
+}
+
+function findKing(b,white){
+  const k=white?'K':'k';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++) if(b[r][c]===k) return [r,c];
+  return null;
+}
+function attacked(b,r,c,byWhite){
+  for(let i=0;i<8;i++)for(let j=0;j<8;j++){
+    const p=b[i][j]; if(p==='.')continue;
+    if(isWhite(p)!==byWhite)continue;
+    if(moves(b,i,j).some(([mr,mc])=>mr===r&&mc===c)) return true;
+  }
+  return false;
+}
+function inCheck(b,white){ const k=findKing(b,white); return k?attacked(b,k[0],k[1],!white):false; }
+
+// legal moves = pseudo-legal that don't leave own king in check
+function legal(b,r,c){
+  const white=isWhite(b[r][c]);
+  return moves(b,r,c).filter(([rr,cc])=>{
+    const nb=clone(b); nb[rr][cc]=nb[r][c]; nb[r][c]='.';
+    // auto-queen promotion for legality check
+    if(nb[rr][cc].toUpperCase()==='P'&&(rr===0||rr===7)) nb[rr][cc]=white?'Q':'q';
+    return !inCheck(nb,white);
+  });
+}
+
+function allLegal(b,white){
+  const list=[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=b[r][c]; if(p==='.'||isWhite(p)!==white)continue;
+    for(const m of legal(b,r,c)) list.push([r,c,m[0],m[1]]);
+  }
+  return list;
+}
+
+function applyMove(b,r,c,rr,cc){
+  b[rr][cc]=b[r][c]; b[r][c]='.';
+  if(b[rr][cc].toUpperCase()==='P'&&(rr===0||rr===7)) b[rr][cc]=isWhite(b[rr][cc])?'Q':'q';
+}
+
+function render(){
+  boardEl.innerHTML='';
+  const legalSel = sel?legal(board,sel[0],sel[1]):[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const d=document.createElement('div');
+    d.className='sq '+(((r+c)%2)?'dark':'light');
+    const p=board[r][c];
+    if(p!=='.'){ d.textContent=GLYPH[p]; d.className+=' '+(isWhite(p)?'pw':'pb'); }
+    if(sel&&sel[0]===r&&sel[1]===c) d.classList.add('sel');
+    if(legalSel.some(([mr,mc])=>mr===r&&mc===c)){
+      d.classList.add('move'); if(p!=='.') d.classList.add('cap');
+    }
+    d.addEventListener('click',()=>clickSq(r,c));
+    boardEl.appendChild(d);
+  }
+}
+function setStatus(t,cls=''){ statusEl.textContent=t; statusEl.className='line '+cls; }
+
+function clickSq(r,c){
+  if(gameOver)return;
+  const p=board[r][c];
+  if(sel){
+    const ok=legal(board,sel[0],sel[1]).some(([mr,mc])=>mr===r&&mc===c);
+    if(ok){
+      history.push(clone(board));
+      const cap=board[r][c]!=='.';
+      applyMove(board,sel[0],sel[1],r,c);
+      sel=null; render(); playBeep(cap?260:440,0.06,0.05);
+      if(checkEnd(false)) return;
+      setStatus('WOPR IS THINKING...','muted');
+      setTimeout(woprMove,650);
+      return;
+    }
+  }
+  if(p!=='.'&&isWhite(p)){ sel=[r,c]; render(); playBeep(520,0.04,0.04); }
+  else { sel=null; render(); }
+}
+
+// ── WOPR AI: 2-ply minimax with material eval ────────────────
+const VAL={P:1,N:3,B:3,R:5,Q:9,K:0};
+function evalBoard(b){ // + favours black (WOPR)
+  let s=0;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=b[r][c]; if(p==='.')continue;
+    const v=VAL[p.toUpperCase()];
+    s+= isBlack(p)? v : -v;
+  }
+  return s;
+}
+function bestMove(b,white,depth){
+  let best=null, bestScore=white?-Infinity:Infinity;
+  const list=allLegal(b,white);
+  // light shuffle so it isn't deterministic
+  for(let i=list.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[list[i],list[j]]=[list[j],list[i]];}
+  for(const [r,c,rr,cc] of list){
+    const nb=clone(b); applyMove(nb,r,c,rr,cc);
+    let score;
+    if(depth<=1){ score=evalBoard(nb); }
+    else {
+      const reply=bestMove(nb,!white,depth-1);
+      score=reply?reply.score:evalBoard(nb);
+    }
+    if(white){ if(score>bestScore){bestScore=score;best=[r,c,rr,cc];} }
+    else     { if(score<bestScore){bestScore=score;best=[r,c,rr,cc];} }
+  }
+  return best?{move:best,score:bestScore}:null;
+}
+
+function woprMove(){
+  const res=bestMove(board,false,2); // black = WOPR
+  if(!res){ checkEnd(true); return; }
+  const [r,c,rr,cc]=res.move;
+  const cap=board[rr][cc]!=='.';
+  applyMove(board,r,c,rr,cc);
+  render(); playBeep(cap?200:340,0.07,0.05);
+  if(cap) speak('Acquired.');
+  checkEnd(true);
+  if(!gameOver) setStatus('YOUR MOVE.');
+}
+
+function checkEnd(afterWopr){
+  // afterWopr=true means it's now white(you) to move
+  const whiteToMove=afterWopr;
+  const list=allLegal(board,whiteToMove);
+  if(list.length===0){
+    gameOver=true;
+    if(inCheck(board,whiteToMove)){
+      if(whiteToMove){ setStatus('CHECKMATE. WOPR WINS.','red'); speak('Checkmate. A strange game.'); }
+      else { setStatus('CHECKMATE. YOU WIN.','bold'); speak('You win. Impressive.'); }
+    } else { setStatus('STALEMATE. A STRANGE GAME.','amber'); speak('Stalemate. A strange game.'); }
+    return true;
+  }
+  if(inCheck(board,whiteToMove)) setStatus(whiteToMove?'CHECK.':'WOPR IS IN CHECK.', 'amber');
+  return false;
+}
+
+document.getElementById('new').addEventListener('click',newGame);
+document.getElementById('undo').addEventListener('click',()=>{
+  if(history.length&&!gameOver){ board=history.pop(); sel=null; gameOver=false; render(); setStatus('YOUR MOVE.'); }
+});
+newGame();
+</script>
+</body>
+</html>

@@ -2,209 +2,391 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>WOFTR — GLOBAL THERMONUCLEAR WAR</title>
+<title>WOPR — GLOBAL THERMONUCLEAR WAR</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --green: #00ff41; --green-dim: #007a20; --green-mid: #00c830;
+  --red: #ff2200; --amber: #ffaa00; --cyan: #00e5ff;
+}
 body {
-  background: #000;
-  color: #0099CC;
-  font-family: 'VT323', 'Courier New', monospace;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  font-size: 15px;
+  background:#000; color:var(--green);
+  font-family:'Courier New',monospace;
+  height:100vh; display:flex; flex-direction:column;
+  overflow:hidden; font-size:13px;
 }
 body::before {
-  content:'';
-  position:fixed; inset:0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px);
+  content:''; position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.12) 4px);
   pointer-events:none; z-index:1000;
 }
+body::after {
+  content:''; position:fixed; inset:0;
+  background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,0.55) 100%);
+  pointer-events:none; z-index:999;
+}
 #terminal {
-  flex:1; overflow-y:auto; padding:18px 22px;
-  display:flex; flex-direction:column; gap:3px;
-  scrollbar-width:thin; scrollbar-color:#0099CC #000;
+  flex:1; overflow-y:auto; padding:14px 18px 6px;
+  display:flex; flex-direction:column; gap:2px;
+  scrollbar-width:thin; scrollbar-color:var(--green-dim) #000;
 }
-.line { white-space:pre-wrap; word-break:break-word; line-height:1.55; }
-.dim    { color:#007a20; }
-.bright { color:#0099CC; font-weight:bold; }
-.red    { color:#ff3300; font-weight:bold; }
-.amber  { color:#ffaa00; }
-.cyan   { color:#00ccff; }
-#input-bar {
-  display:flex; align-items:center; border-top:1px solid #003a10;
-  padding:10px 22px 14px; gap:8px; background:rgba(0,20,0,0.4);
-}
-#prompt { color:#0099CC; font-weight:bold; white-space:nowrap; }
-#cmd {
-  flex:1; background:transparent; border:none; outline:none;
-  color:#0099CC; font-family:'Courier New',monospace; font-size:15px; caret-color:#0099CC;
-}
-#map-container { font-size:11px; line-height:1.28; margin:10px 0; letter-spacing:0.5px; }
-.map-row { white-space:pre; }
-.map-dead { color:#ff3300; }
-.map-city { color:#0099CC; font-weight:bold; }
+#terminal::-webkit-scrollbar{width:6px;}
+#terminal::-webkit-scrollbar-track{background:#000;}
+#terminal::-webkit-scrollbar-thumb{background:var(--green-dim);}
+.line{white-space:pre-wrap;word-break:break-word;line-height:1.55;}
+.dim   {color:var(--green-dim);}
+.bright{color:var(--green);font-weight:bold;}
+.red   {color:var(--red);font-weight:bold;}
+.amber {color:var(--amber);}
+.cyan  {color:var(--cyan);}
+#map-container{font-size:10.5px;line-height:1.28;margin:6px 0;letter-spacing:0.5px;}
+.map-row{white-space:pre;}
+.map-dot{color:#004a14;}
+.map-city{color:var(--green);font-weight:bold;}
+.map-dead{color:var(--red);}
+.casualty-bar{display:flex;gap:24px;padding:4px 0;font-size:11px;border-bottom:1px solid #003a10;margin-bottom:4px;flex-wrap:wrap;}
+.c-us  {color:var(--cyan);}
+.c-ussr{color:var(--amber);}
+.c-tot {color:var(--red);}
+#strike-log{border-top:1px solid #003a10;padding:6px 18px;min-height:38px;max-height:72px;overflow-y:auto;font-size:11px;color:var(--green-dim);}
+#input-bar{display:flex;align-items:center;border-top:1px solid #003a10;padding:8px 18px 12px;gap:8px;background:rgba(0,20,0,0.4);}
+#prompt{color:var(--green);font-weight:bold;white-space:nowrap;}
+#cmd{flex:1;background:transparent;border:none;outline:none;color:var(--green);font-family:'Courier New',monospace;font-size:13px;caret-color:var(--green);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.blink{animation:blink 1s infinite;}
 </style>
 </head>
 <body>
 <div id="terminal"></div>
 <div id="strike-log"></div>
 <div id="input-bar">
-  <span id="prompt">WOFTR &gt;</span>
+  <span id="prompt">WOPR &gt;</span>
   <input id="cmd" type="text" autocomplete="off" spellcheck="false" autofocus />
 </div>
-
 <script>
-const term = document.getElementById('terminal');
-const slog = document.getElementById('strike-log');
-const cmdInput = document.getElementById('cmd');
-const promptEl = document.getElementById('prompt');
-
-const urlParams = new URLSearchParams(window.location.search);
-const playerName = (urlParams.get('name') || 'PROFESSOR').toUpperCase();
-
-const state = {
-  phase:'boot', side:null, difficulty:null, turn:0,
-  playerCities: [
-    { name:'NEW YORK', code:'NYK', pop:8336000, col:64, row:7, alive:true, dead:0, wounded:0 },
-    { name:'LOS ANGELES', code:'LAX', pop:3979000, col:9, row:9, alive:true, dead:0, wounded:0 },
-    { name:'CHICAGO', code:'CHI', pop:2696000, col:54, row:6, alive:true, dead:0, wounded:0 },
-    { name:'WASHINGTON DC', code:'WDC', pop:705000, col:63, row:8, alive:true, dead:0, wounded:0 },
-    { name:'HOUSTON', code:'HOU', pop:2304000, col:47, row:12, alive:true, dead:0, wounded:0 },
-    { name:'SEATTLE', code:'SEA', pop:744000, col:8, row:4, alive:true, dead:0, wounded:0 },
-  ],
-  enemyCities: [
-    { name:'MOSCOW', code:'MSC', pop:8769000, col:80, row:4, alive:true, dead:0, wounded:0 },
-    { name:'LENINGRAD', code:'LEN', pop:4456000, col:78, row:2, alive:true, dead:0, wounded:0 },
-    { name:'KIEV', code:'KIV', pop:2587000, col:76, row:6, alive:true, dead:0, wounded:0 },
-    { name:'MINSK', code:'MNS', pop:1589000, col:75, row:4, alive:true, dead:0, wounded:0 },
-    { name:'NOVOSIBIRSK', code:'NOV', pop:1436000, col:93, row:5, alive:true, dead:0, wounded:0 },
-    { name:'VLADIVOSTOK', code:'VLD', pop:648000, col:99, row:7, alive:true, dead:0, wounded:0 },
-  ],
-  missileCount:10, woprMissiles:10, strikes:[], woprThinking:false,
-  playerName: playerName
-};
-
-const BASE_MAP = [
-"                                                                                                    ",
-"        . . .  S E A T T L E                                   L E N I N G R A D  M I N S K       ",
-"       .  U N I T E D  S T A T E S  . . . .         . . . . .  U S S R  . . . . M O S C O W      ",
-"      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    ",
-"     . . . . . C H I C A G O . . . . . . . . . . . . . . . . . . K I E V . . . . . . . . . .    ",
-"    . . . . . . . . . . . . . . N E W  Y O R K . . . . . . . . . . . . . . N O V O S I B I R S K ",
-"   . . . . . . . . . . . . . . . W A S H I N G T O N . . . . . . . . . . . . . . . . . . . . .  ",
-"  . . . . L A X . . . . . . H O U S T O N . . . . . . . . . . . . . . . . . . . . . V L D . . .  ",
-" . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ",
-". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  ",
-". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  ",
-" . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   ",
-"  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    ",
-"   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     ",
-"                                                                                                   ",
+// ── DATA ─────────────────────────────────────────────────────
+const US_CITIES = [
+  {name:'NEW YORK',     code:'NYK',pop:8336000,col:64,row:7},
+  {name:'LOS ANGELES',  code:'LAX',pop:3979000,col:9, row:9},
+  {name:'CHICAGO',      code:'CHI',pop:2696000,col:54,row:6},
+  {name:'WASHINGTON DC',code:'WDC',pop:705000, col:63,row:8},
+  {name:'HOUSTON',      code:'HOU',pop:2304000,col:47,row:12},
+  {name:'SEATTLE',      code:'SEA',pop:744000, col:8, row:4},
+  {name:'PHILADELPHIA', code:'PHL',pop:1584000,col:65,row:7},
+  {name:'SAN FRANCISCO',code:'SFO',pop:881000, col:6, row:8},
+];
+const USSR_CITIES = [
+  {name:'MOSCOW',      code:'MSC',pop:8769000,col:80,row:4},
+  {name:'LENINGRAD',   code:'LEN',pop:4456000,col:78,row:2},
+  {name:'KIEV',        code:'KIV',pop:2587000,col:76,row:6},
+  {name:'MINSK',       code:'MNS',pop:1589000,col:75,row:4},
+  {name:'NOVOSIBIRSK', code:'NOV',pop:1436000,col:93,row:5},
+  {name:'VLADIVOSTOK', code:'VLD',pop:648000, col:99,row:7},
+  {name:'STALINGRAD',  code:'STG',pop:1021000,col:82,row:7},
+  {name:'ODESSA',      code:'ODS',pop:1115000,col:77,row:8},
 ];
 
-function renderMap() {
-  const rows = BASE_MAP.map(r => Array.from(r));
-  const all = [...state.playerCities, ...state.enemyCities];
-  for (const c of all) {
-    if (!c.alive && c.row < rows.length) {
-      for (let dc = -1; dc <= 1; dc++) {
-        const ci = c.col + dc;
-        if (ci >= 0 && ci < rows[c.row].length) rows[c.row][ci] = '*';
+const BASE_MAP = [
+"           . . . .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+"      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+"   S . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . L . . . . M . . . . . . . . . . . . . . . . . . . .",
+"  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+" . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . M O . . . . . . . . . . . . . . . . . . . . . . . . .",
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . N . . . . . . . . . .",
+". L . . . . . C . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . K . . . . . . . . . . . . . . . . . . . . . . V . .",
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . N W . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+". S . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . O . . . . . . . . . . . . . . . . . . . . . . . .",
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+" . . . . . . . . . . . . . . . H . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+"  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+"   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+"    . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
+];
+
+// ── STATE ────────────────────────────────────────────────────
+function fresh() {
+  return {
+    phase: 'playing',
+    playerCities: US_CITIES.map(c=>({...c,alive:true,dead:0,wounded:0})),
+    enemyCities:  USSR_CITIES.map(c=>({...c,alive:true,dead:0,wounded:0})),
+    playerMissiles: 10,
+    woprMissiles:   10,
+    turn: 0,
+    busy: false,
+  };
+}
+let G = fresh();
+
+// ── DOM ───────────────────────────────────────────────────────
+const term   = document.getElementById('terminal');
+const slog   = document.getElementById('strike-log');
+const cmdEl  = document.getElementById('cmd');
+const promptEl = document.getElementById('prompt');
+
+function setPrompt(t){promptEl.textContent=t;}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function addLine(html='',cls=''){
+  const d=document.createElement('div');
+  d.className='line '+cls; d.innerHTML=html;
+  term.appendChild(d); term.scrollTop=term.scrollHeight; return d;
+}
+function blank(ms=0){return new Promise(r=>{setTimeout(()=>{addLine();r();},ms);});}
+async function p(html,cls='',ms=0){await sleep(ms);addLine(html,cls);}
+async function tw(text,cls='',speed=40,ms=0){
+  await sleep(ms); const d=addLine('',cls);
+  for(const ch of text){await sleep(speed);d.textContent+=ch;term.scrollTop=term.scrollHeight;}
+}
+function logHit(html){
+  const d=document.createElement('div');d.innerHTML=html;
+  slog.appendChild(d);slog.scrollTop=slog.scrollHeight;
+}
+
+// ── HELPERS ──────────────────────────────────────────────────
+function fmt(n){
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return Math.round(n/1e3)+'K';
+  return ''+n;
+}
+function calcCas(city){
+  const pf=Math.min(1,city.pop/5e6);
+  const dead   =Math.floor(city.pop*(0.28+pf*0.18)*(0.8+Math.random()*0.4));
+  const wounded=Math.floor(city.pop*(0.22+pf*0.10)*(0.8+Math.random()*0.4));
+  const rad    =Math.floor(city.pop*0.06*(0.7+Math.random()*0.6));
+  return {dead,wounded:wounded+rad,rad};
+}
+
+// ── MAP ──────────────────────────────────────────────────────
+function renderMap(){
+  const rows=BASE_MAP.map(r=>Array.from(r));
+  for(const c of [...G.playerCities,...G.enemyCities]){
+    if(!c.alive&&c.row<rows.length){
+      for(let dc=-1;dc<=1;dc++){
+        const ci=c.col+dc;
+        if(ci>=0&&ci<rows[c.row].length) rows[c.row][ci]='\x01';
       }
     }
   }
-  const container = document.createElement('div');
-  container.id = 'map-container';
-  for (const row of rows) {
-    const div = document.createElement('div');
-    div.className = 'map-row';
-    div.innerHTML = row.join('').replace(/\*/g, '<span class="map-dead">*</span>');
-    container.appendChild(div);
-  }
-  return container;
-}
-
-function append(text, cls = '') {
-  const div = document.createElement('div');
-  div.className = 'line ' + cls;
-  div.innerHTML = text;
-  term.appendChild(div);
-  term.scrollTop = term.scrollHeight;
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function typewriter(text, cls = '', speed = 38) {
-  const div = document.createElement('div');
-  div.className = 'line ' + cls;
-  term.appendChild(div);
-  for (const ch of text) {
-    await sleep(speed);
-    div.textContent += ch;
-    term.scrollTop = term.scrollHeight;
-  }
-}
-
-function blank(delay = 0) { return new Promise(r => setTimeout(() => { append(''); r(); }, delay)); }
-
-async function boot() {
-  await typewriter('W O F T R  —  WAR OPERATION PLAN RESPONSE', 'bright', 45, 200);
-  await blank(300);
-  await typewriter(`HELLO, ${state.playerName}.`, 'cyan', 55, 400);
-  await blank(500);
-  await typewriter('SHALL WE PLAY A GAME?', 'bright', 55, 600);
-  await blank(800);
-  S.phase = 'menu';
-  await showMenu();
-}
-
-async function showMenu() {
-  await print('AVAILABLE GAMES:', 'bright', 200);
-  const games = [
-    '  1. CHESS',
-    '  2. CHECKERS',
-    '  3. BACKGAMMON',
-    '  4. POKER',
-    '  5. FIGHTER COMBAT',
-    '  6. GUERRILLA ENGAGEMENT',
-    '  7. DESERT WARFARE',
-    '  8. AIR-TO-GROUND ACTIONS',
-    '  9. THEATERWIDE TACTICAL WARFARE',
-    ' 10. THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE',
-    ' 11. GLOBAL THERMONUCLEAR WAR',
-  ];
-  await printLines(games, 'dim', 300, 70);
-  await blank(1200);
-  await print('TYPE A GAME NUMBER OR NAME TO BEGIN.', 'bright', 1300);
-  setPrompt('WOFTR >');
-}
-
-document.getElementById('cmd').addEventListener('keydown', async e => {
-  if (e.key !== 'Enter') return;
-  const val = document.getElementById('cmd').value.trim();
-  document.getElementById('cmd').value = '';
-  if (!val) return;
-
-  await print('> ' + val.toUpperCase(), 'dim');
-
-  if (S.phase === 'menu') {
-    const v = val.toUpperCase();
-    if (v === '11' || v.includes('GLOBAL') || v.includes('THERMO') || v.includes('NUCLEAR') || v.includes('WAR')) {
-      S.phase = 'side';
-      await blank(100);
-      await print('GLOBAL THERMONUCLEAR WAR', 'red', 200);
-      await print('PICK YOUR SIDE:', 'bright', 400);
-      await print('  1. UNITED STATES', 'dim', 550);
-      await print('  2. SOVIET UNION', 'dim', 650);
-      setPrompt('SIDE >');
-    } else {
-      await print("THAT GAME IS NOT AVAILABLE. TRY 'GLOBAL THERMONUCLEAR WAR'.", 'dim', 100);
+  const wrap=document.createElement('div');
+  wrap.id='map-container';
+  for(const row of rows){
+    const rd=document.createElement('div');rd.className='map-row';
+    let h='';
+    for(const ch of row){
+      if(ch==='\x01')h+='<span class="map-dead">\u2715</span>';
+      else if(ch==='.')h+='<span class="map-dot">.</span>';
+      else h+=ch;
     }
+    rd.innerHTML=h;wrap.appendChild(rd);
   }
-  // ... rest of game logic unchanged ...
+  return wrap;
+}
+function showMap(){
+  const old=document.getElementById('map-container');if(old)old.remove();
+  term.appendChild(renderMap());term.scrollTop=term.scrollHeight;
+}
+
+function showCasBar(){
+  const d=document.createElement('div');d.className='line casualty-bar';
+  const usD =G.playerCities.reduce((a,c)=>a+c.dead,0);
+  const srD =G.enemyCities.reduce((a,c)=>a+c.dead,0);
+  const totD=usD+srD;
+  const totW=[...G.playerCities,...G.enemyCities].reduce((a,c)=>a+c.wounded,0);
+  d.innerHTML=`<span class="c-us">US DEAD: ${fmt(usD)}</span>`+
+              `<span class="c-ussr">USSR DEAD: ${fmt(srD)}</span>`+
+              `<span class="c-tot">TOTAL KILLED: ${fmt(totD)} | WOUNDED: ${fmt(totW)}</span>`;
+  term.appendChild(d);term.scrollTop=term.scrollHeight;
+}
+
+// ── TURN DISPLAY ─────────────────────────────────────────────
+async function showTurn(){
+  await blank(80);
+  await p('\u2500'.repeat(60),'dim',100);
+  await p(`TURN ${G.turn+1}  \u2551  US MISSILES: <span class="cyan">${G.playerMissiles}</span>  \u2551  WOPR MISSILES: <span class="red">${G.woprMissiles}</span>`,'bright',150);
+  await blank(180);
+  showMap();
+  showCasBar();
+  await blank(100);
+
+  await p('US CITIES:','cyan',100);
+  for(const c of G.playerCities){
+    if(c.alive) await p(`  ${c.name.padEnd(18)} [ STANDING ]  POP: ${fmt(c.pop)}`,'dim',25);
+    else        await p(`  ${c.name.padEnd(18)} [DESTROYED]  DEAD: <span class="red">${fmt(c.dead)}</span>  WND: <span class="amber">${fmt(c.wounded)}</span>`,'red',25);
+  }
+  await blank(80);
+  await p('SOVIET CITIES:','amber',100);
+  for(const c of G.enemyCities){
+    if(c.alive) await p(`  ${c.name.padEnd(18)} [ STANDING ]  POP: ${fmt(c.pop)}`,'dim',25);
+    else        await p(`  ${c.name.padEnd(18)} [DESTROYED]  DEAD: <span class="red">${fmt(c.dead)}</span>  WND: <span class="amber">${fmt(c.wounded)}</span>`,'red',25);
+  }
+  await blank(120);
+
+  const targets=G.enemyCities.filter(c=>c.alive);
+  if(targets.length===0){endGame();return;}
+  if(G.playerMissiles===0&&G.woprMissiles===0){endGame();return;}
+  if(G.playerMissiles===0){
+    await p('US MISSILES EXHAUSTED — WOPR RETALIATES...','amber',200);
+    await woprStrike();return;
+  }
+
+  const tlist=targets.map(c=>`<span class="amber">${c.name}</span>`).join('  ');
+  await p('TARGETS: '+tlist,'',200);
+  await p('TYPE CITY NAME TO LAUNCH \u2014 or PASS to skip','dim',300);
+  setPrompt('TARGET >');
+}
+
+// ── STRIKE SEQUENCE ──────────────────────────────────────────
+async function doStrike(city, who){
+  const isPlayer = who==='US';
+  const col = isPlayer?'cyan':'red';
+  await blank(100);
+  await p(`<span class="${col}">\u25b6 ${isPlayer?'LAUNCH CONFIRMED':'WOPR STRIKE INBOUND'}: ${city.name}</span>`,'',200);
+  for(let i=5;i>=1;i--) await p(`  IMPACT IN ${i}...`,'amber',220);
+  await sleep(200);
+  await p(`<span class="red blink">  \u2605 DETONATION \u2605  ${city.name}</span>`,'',100);
+  await sleep(350);
+  const cas=calcCas(city);
+  city.alive=false;city.dead=cas.dead;city.wounded=cas.wounded;
+  await p(`  WARHEAD YIELD: 1.2 MT`,'dim',200);
+  await p(`  IMMEDIATE FATALITIES . . <span class="red">${fmt(cas.dead)}</span>`,'',300);
+  await p(`  BLAST / RAD WOUNDED . . <span class="amber">${fmt(cas.wounded)}</span>`,'',400);
+  await p(`  30-DAY PROJECTED DEAD . <span class="red">${fmt(Math.floor((cas.dead+cas.rad)*1.35))}</span>`,'',500);
+  await blank(600);
+  logHit(`<span class="${col}">[T${G.turn}] ${who} \u2192 ${city.name} | DEAD: ${fmt(city.dead)} | WND: ${fmt(city.wounded)}</span>`);
+}
+
+// ── WOPR STRIKE ──────────────────────────────────────────────
+async function woprStrike(){
+  if(G.woprMissiles<=0){await showTurn();return;}
+  const alive=G.playerCities.filter(c=>c.alive);
+  if(alive.length===0){endGame();return;}
+  // WOPR targets highest-population alive city with 70% chance
+  const sorted=alive.slice().sort((a,b)=>b.pop-a.pop);
+  const target=Math.random()<0.7?sorted[0]:alive[Math.floor(Math.random()*alive.length)];
+  G.woprMissiles--;
+  await p('<span class="red">\u26a0  INCOMING MISSILE DETECTED  \u26a0</span>','',300);
+  await doStrike(target,'WOPR');
+  if(G.playerCities.filter(c=>c.alive).length===0){endGame();return;}
+  await showTurn();
+}
+
+// ── PLAYER INPUT ─────────────────────────────────────────────
+cmdEl.addEventListener('keydown',async e=>{
+  if(e.key!=='Enter'||G.busy)return;
+  const val=cmdEl.value.trim();cmdEl.value='';
+  if(!val)return;
+  await p('<span class="dim">&gt;</span> '+val.toUpperCase(),'dim');
+
+  if(G.phase==='gameover'){
+    if(val.toUpperCase().includes('PLAY')||val.toUpperCase().includes('AGAIN')||val.toUpperCase().includes('RESTART')){
+      G=fresh();slog.innerHTML='';
+      await blank(100);await p('REINITIALIZING...','dim',200);await blank(400);
+      await showTurn();
+    } else if(val.toUpperCase().includes('CHESS')){
+      await p("GOOD CHOICE. UNFORTUNATELY I DON'T PLAY CHESS. TRY 'PLAY AGAIN'.",'amber',200);
+    } else {
+      await p("TYPE 'PLAY AGAIN' TO RESTART.",'dim',100);
+    }
+    return;
+  }
+
+  if(G.phase!=='playing')return;
+  G.busy=true;
+
+  const v=val.toUpperCase().trim();
+  if(v==='PASS'||v==='SKIP'){
+    await p('TURN PASSED — WOPR RETALIATES...','amber',100);
+    G.turn++;await woprStrike();G.busy=false;return;
+  }
+
+  const target=G.enemyCities.find(c=>c.alive&&(c.name.includes(v)||c.code===v));
+  if(!target){
+    await p('INVALID TARGET. CHOOSE AN ACTIVE SOVIET CITY OR TYPE PASS.','red',100);
+    G.busy=false;return;
+  }
+  if(G.playerMissiles<=0){await p('NO MISSILES REMAINING.','red',100);G.busy=false;return;}
+
+  G.playerMissiles--;G.turn++;
+  await doStrike(target,'US');
+
+  if(G.enemyCities.filter(c=>c.alive).length===0){endGame();G.busy=false;return;}
+  await woprStrike();
+  G.busy=false;
 });
+
+// ── END ──────────────────────────────────────────────────────
+async function endGame(){
+  G.phase='gameover';
+  const usD  =G.playerCities.reduce((a,c)=>a+c.dead,0);
+  const srD  =G.enemyCities.reduce((a,c)=>a+c.dead,0);
+  const usW  =G.playerCities.reduce((a,c)=>a+c.wounded,0);
+  const srW  =G.enemyCities.reduce((a,c)=>a+c.wounded,0);
+  const totD =usD+srD;
+  const totW =usW+srW;
+  const rad  =Math.floor(totD*0.4);
+
+  await blank(300);
+  await p('\u2550'.repeat(60),'dim',400);
+  await p('<span class="red">ENGAGEMENT CONCLUDED</span>','',600);
+  await blank(700);
+  await p('\u2500\u2500\u2500 FINAL CASUALTY REPORT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500','dim',800);
+  await p(`  UNITED STATES  \u2014 KILLED: <span class="red">${fmt(usD)}</span>   WOUNDED: <span class="amber">${fmt(usW)}</span>`,'',1000);
+  await p(`  SOVIET UNION   \u2014 KILLED: <span class="red">${fmt(srD)}</span>   WOUNDED: <span class="amber">${fmt(srW)}</span>`,'',1100);
+  await blank(1150);
+  await p(`  TOTAL IMMEDIATE DEAD . . . . <span class="red">${fmt(totD)}</span>`,'',1200);
+  await p(`  TOTAL WOUNDED  . . . . . . . <span class="amber">${fmt(totW)}</span>`,'',1300);
+  await p(`  RADIATION DEATHS (30-DAY) . . <span class="red">${fmt(rad)}</span>`,'',1400);
+  await p(`  PROJECTED TOTAL (90-DAY) . . <span class="red">${fmt(Math.floor((totD+rad)*1.6))}</span>`,'',1500);
+  await blank(1600);
+  await p('  NUCLEAR WINTER . . . . . . . <span class="red">PROBABLE</span>','',1700);
+  await p('  AGRICULTURAL COLLAPSE . . . .<span class="red"> SEVERE</span>','',1800);
+  await p('  CIVILIZATION RECOVERY . . . .<span class="amber"> UNKNOWN</span>','',1900);
+  await blank(2100);
+  await tw('A  S T R A N G E  G A M E.','bright',70,2200);
+  await blank(2400);
+  await tw('THE ONLY WINNING MOVE IS NOT TO PLAY.','bright',55,2600);
+  await blank(2900);
+  await tw('HOW ABOUT A NICE GAME OF CHESS?','cyan',55,3000);
+  await blank(3300);
+  await p("TYPE 'PLAY AGAIN' TO RESTART.",'dim',3400);
+  setPrompt('WOPR >');
+}
+
+// ── BOOT ─────────────────────────────────────────────────────
+async function boot(){
+  await sleep(300);
+  await tw('W O P R  \u2014  WAR OPERATION PLAN RESPONSE','bright',45);
+  await p('NORAD / CHEYENNE MOUNTAIN  //  TOP SECRET','dim',200);
+  await p('\u2500'.repeat(60),'dim',250);
+  await blank(300);
+  const bl=[
+    'LOADING WARPLAN SIOP-62F . . . . . . . . . . [OK]',
+    'MISSILE TRAJECTORY MATRIX . . . . . . . . . . [OK]',
+    'SAC HEADQUARTERS UPLINK  . . . . . . . . . . [OK]',
+    'NORAD EARLY WARNING  . . . . . . . . . . . . [OK]',
+    'CASUALTY ESTIMATION MODULE . . . . . . . . . [OK]',
+    'RADIATION DISPERSAL MODEL  . . . . . . . . . [OK]',
+    'TARGET ACQUISITION NETWORK . . . . . . . . . [OK]',
+  ];
+  for(let i=0;i<bl.length;i++) await p(bl[i],'dim',100+i*130);
+  await blank(400);
+  await tw('LOGON: ','bright',55,500);
+  await sleep(150); await tw('FALKEN','bright',90);
+  await tw('PASSWORD: \u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022','dim',50,300);
+  await blank(150);
+  await p('IDENTIFICATION CONFIRMED.','bright',700);
+  await p('HELLO, PROFESSOR FALKEN.','cyan',900);
+  await blank(1000);
+  await tw('SHALL WE PLAY A GAME?','bright',55,1100);
+  await blank(1200);
+  await p('<span class="red blink">\u26a0  GLOBAL THERMONUCLEAR WAR  \u26a0</span>','',1300);
+  await p('DEFCON: <span class="red">1</span>  \u2014  NUCLEAR WAR IMMINENT','amber',1500);
+  await blank(1600);
+  await p('US MISSILES: <span class="cyan">10</span>  |  WARHEAD YIELD: <span class="red">1.2 MT</span>  |  WOPR MISSILES: <span class="red">10</span>','',1700);
+  await blank(1900);
+  await showTurn();
+}
 
 boot();
 </script>

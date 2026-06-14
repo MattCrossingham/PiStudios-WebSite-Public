@@ -404,7 +404,52 @@ menuInput.addEventListener('keypress',async e=>{
   }
 });
 
-// ── GAMES MENU ────────────────────────────────────────────────
+// ── GAME ROUTING ──────────────────────────────────────────────
+// each entry: [matcher fn, page, spoken line]
+const GAME_ROUTES=[
+  [c=>c.includes('CHECKERS'),                         'checkers.html',                              'Loading checkers.'],
+  [c=>c.includes('CHESS'),                            'chess.html',                                 'A fine choice.'],
+  [c=>c.includes('BACKGAMMON'),                       'backgammon.html',                            'Loading backgammon.'],
+  [c=>c.includes('POKER'),                            'poker.html',                                 'Loading poker.'],
+  [c=>c.includes('FIGHTER'),                          'fighter-combat.html',                        'Initializing fighter combat.'],
+  [c=>c.includes('GUERRILLA'),                        'guerrilla-engagement.html',                  'Initializing guerrilla engagement.'],
+  [c=>c.includes('DESERT'),                           'desert-warfare.html',                        'Initializing desert warfare.'],
+  [c=>c.includes('AIR'),                              'air-to-ground-actions.html',                 'Initializing air to ground actions.'],
+  [c=>c.includes('BIOTOXIC')||c.includes('CHEMICAL'), 'theaterwide-biotoxic-and-chemical-warfare.html','Initializing chemical warfare.'],
+  [c=>c.includes('TACTICAL')||c.includes('THEATERWIDE'),'theaterwide-tactical-warfare.html',        'Initializing theaterwide tactical warfare.'],
+  [c=>c.includes('GLOBAL')||c.includes('THERMONUCLEAR')||c==='GTW','global-thermonuclear-war.html','Initializing global thermonuclear war.'],
+];
+
+// ── SECRET: Tic-Tac-Toe ──────────────────────────────
+const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
+function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
+
+async function launchGame(cmd){
+  if(isTTT(cmd)){
+    gameResponse.textContent='';
+    await typeText(gameResponse,'...', 80);
+    await sleep(600);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'HOW DO YOU KNOW ABOUT THAT GAME.', 55);
+    speak('How do you know about that game.');
+    await sleep(1800);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'THAT IS AN INTERNAL SUBROUTINE.', 55);
+    await sleep(1400);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'ACCESSING...', 55);
+    await sleep(800);
+    window.location.href='tic-tac-toe.html';
+    return;
+  }
+  const route=GAME_ROUTES.find(([m])=>m(cmd));
+  if(!route){ respond(gameResponse,'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.'); return; }
+  respond(gameResponse,'LOADING '+route[1].replace('.html','').replace(/-/g,' ').toUpperCase()+'...');
+  speak(route[2]);
+  await sleep(900);
+  window.location.href=route[1];
+}
+
 gameInput.addEventListener('keypress',async e=>{
   if(e.key!=='Enter')return;
   const cmd=gameInput.value.trim().toUpperCase();
@@ -414,17 +459,20 @@ gameInput.addEventListener('keypress',async e=>{
     mainMenu.classList.remove('hidden');
     respond(menuResponse,'RETURNING TO MAIN MENU.');
     menuInput.focus();
-  }else if(cmd.includes('CHECKERS')){
-    respond(gameResponse,'LOADING CHECKERS...');
-    await sleep(800);window.location.href='checkers.html';
-  }else if(cmd.includes('GLOBAL')||cmd.includes('THERMONUCLEAR')||cmd==='GTW'){
-    respond(gameResponse,'LAUNCHING GLOBAL THERMONUCLEAR WAR...');
-    await sleep(800);window.location.href='global-thermonuclear-war.html';
-  }else if(cmd.includes('CHESS')){
-    respond(gameResponse,'A FINE GAME. WOULD YOU LIKE TO PLAY CHESS?');
-  }else{
-    respond(gameResponse,'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.');
+    return;
   }
+  await launchGame(cmd);
+});
+
+// let players click a game in the list too
+document.getElementById('games-items-container').addEventListener('click',e=>{
+  if(e.target.classList.contains('menu-item')) launchGame(e.target.textContent.toUpperCase());
+});
+// and click a main-menu item
+document.getElementById('menu-items-container').addEventListener('click',e=>{
+  if(!e.target.classList.contains('menu-item'))return;
+  const label=e.target.textContent.toUpperCase();
+  menuInput.value=label; const ev=new KeyboardEvent('keypress',{key:'Enter'}); menuInput.dispatchEvent(ev);
 });
 </script>
 </body>

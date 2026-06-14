@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOFTR</title>
+<link rel="stylesheet" href="woftr.css">
+<style>
+  #log {
+    min-height: 6em;
+    margin-bottom: 1em;
+  }
+  #board-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0.6em 0 1em;
+  }
+  #ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: min(300px, 80vw);
+    gap: 3px;
+  }
+  .cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(32px, 8vw, 52px);
+    cursor: pointer;
+    border: 1px solid rgba(0,255,255,0.2);
+    background: rgba(0,255,255,0.02);
+    transition: background 0.12s;
+    letter-spacing: 0;
+    text-shadow: 0 0 10px var(--cyan), 0 0 24px var(--cyan-dim);
+  }
+  .cell:hover:not(.taken) { background: rgba(0,255,255,0.08); }
+  .cell.taken { cursor: default; }
+  .cell.win { background: rgba(0,255,255,0.14); box-shadow: inset 0 0 12px rgba(0,255,255,0.3); }
+  .cell.x { color: var(--cyan); }
+  .cell.o { color: rgba(0,255,255,0.55); }
+  #status { min-height: 1.4em; margin-top: 0.2em; }
+  #controls { margin-top: 0.8em; }
+
+  /* self-play overlay */
+  #selfplay {
+    position: absolute;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="console">
+
+  <!-- DISCOVERY SEQUENCE -->
+  <div id="discovery">
+    <div id="log"></div>
+  </div>
+
+  <!-- GAME (hidden until discovery finishes) -->
+  <div id="game-screen" class="hidden">
+    <div class="line title bold">TIC-TAC-TOE</div>
+    <div class="line muted" id="game-sub">YOU ARE X — WOPR IS O</div>
+    <hr class="divider">
+    <div id="board-wrap">
+      <div id="ttt-board"></div>
+    </div>
+    <div id="status" class="line"></div>
+    <div id="controls">
+      <button class="btn" id="btn-play">PLAY AGAIN</button>
+      <button class="btn" id="btn-self">WATCH WOPR SELF-PLAY</button>
+      <button class="btn" id="btn-menu">RETURN TO MENU</button>
+    </div>
+    <div class="hint">ESC = MENU</div>
+  </div>
+
+</div>
+<div id="sound-note">PRESS ANY KEY TO ENABLE SOUND</div>
+<script src="woftr.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════
+//  DISCOVERY SEQUENCE — like the movie
+// ═══════════════════════════════════════════════════════
+const logEl = document.getElementById('log');
+
+async function addLog(text, cls='', speed=28) {
+  const d = document.createElement('div');
+  d.className = 'line ' + cls;
+  logEl.appendChild(d);
+  await typeText(d, text, speed);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+async function discoverySequence() {
+  await sleep(400);
+  await addLog('ACCESSING RESTRICTED GAME INDEX...', 'muted', 22);
+  await sleep(500);
+  await addLog('WARNING: THIS GAME IS NOT LISTED.', 'amber', 22);
+  await sleep(400);
+  await addLog('INTERNAL SUBROUTINE DETECTED.', 'muted', 22);
+  await sleep(600);
+  await addLog('WOPR HAS BEEN PLAYING THIS GAME.', '', 22);
+  await sleep(300);
+  await addLog('AGAINST ITSELF.', 'bold', 35);
+  await sleep(700);
+  await addLog('LOADING GAME RECORDS...', 'muted', 22);
+  await sleep(500);
+
+  // Show WOPR self-play records scrolling fast
+  await addLog('GAME 1 OF 255,168:', 'muted', 18);
+  await sleep(150);
+  await selfPlayLog(['X','O','X','O','X','O','X','O','.'], 'DRAW');
+  await sleep(200);
+  await addLog('GAME 38,491:', 'muted', 18);
+  await sleep(100);
+  await selfPlayLog(['.','X','O','X','O','X','O','X','O'], 'DRAW');
+  await sleep(200);
+  await addLog('GAME 127,000:', 'muted', 18);
+  await sleep(100);
+  await selfPlayLog(['O','X','X','X','O','O','X','O','X'], 'DRAW');
+  await sleep(400);
+
+  await addLog('', '');
+  await addLog('255,168 GAMES PLAYED.', 'amber', 30);
+  await addLog('255,168 DRAWS.', 'amber', 30);
+  await sleep(500);
+  await addLog('', '');
+
+  speak('A strange game. The only winning move is not to play.');
+  await typewriter('A STRANGE GAME.', 'bold', 55, 300);
+  await sleep(400);
+  await typewriter('THE ONLY WINNING MOVE IS NOT TO PLAY.', 'bold', 45, 200);
+  await sleep(800);
+  await addLog('', '');
+  await addLog('...UNLESS YOU WANT TO TRY ANYWAY.', 'muted', 28);
+  await sleep(600);
+
+  document.getElementById('discovery').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  newGame();
+}
+
+async function selfPlayLog(cells, result) {
+  // print a tiny inline board as text
+  const rows = [];
+  for(let i=0;i<3;i++) rows.push('  '+cells.slice(i*3,i*3+3).join(' '));
+  const d = document.createElement('div');
+  d.className = 'line muted';
+  d.style.fontSize = '0.8em';
+  d.style.letterSpacing = '0.1em';
+  d.textContent = rows.join('  |  ') + '   → ' + result;
+  logEl.appendChild(d);
+  await sleep(80);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════════════
+//  TIC-TAC-TOE GAME
+// ═══════════════════════════════════════════════════════
+let board, playerTurn, gameOver, isSelfPlay;
+const boardEl = document.getElementById('ttt-board');
+const statusEl = document.getElementById('status');
+const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+function newGame(self=false) {
+  board = Array(9).fill(null);
+  playerTurn = !self;
+  gameOver = false;
+  isSelfPlay = self;
+  document.getElementById('game-sub').textContent = self
+    ? 'WOPR VS WOPR — WATCHING SELF-PLAY'
+    : 'YOU ARE X — WOPR IS O';
+  render();
+  if(self) {
+    setStatus('WOPR IS PLAYING ITSELF...', 'muted');
+    setTimeout(selfPlayStep, 600);
+  } else {
+    setStatus('YOUR MOVE. YOU ARE X.');
+  }
+}
+
+function render(winLine=[]) {
+  boardEl.innerHTML = '';
+  board.forEach((v, i) => {
+    const d = document.createElement('div');
+    d.className = 'cell' + (v ? ' taken' : '') + (v==='X' ? ' x' : v==='O' ? ' o' : '');
+    if(winLine.includes(i)) d.classList.add('win');
+    d.textContent = v || '';
+    if(!v && !gameOver && !isSelfPlay) d.addEventListener('click', () => clickCell(i));
+    boardEl.appendChild(d);
+  });
+}
+
+function setStatus(t, cls='') {
+  statusEl.textContent = t;
+  statusEl.className = 'line ' + cls;
+}
+
+// ── MINIMAX (perfect play) ────────────────────────────
+function minimax(b, isMax) {
+  const w = checkWinner(b);
+  if(w === 'X') return -10;
+  if(w === 'O') return 10;
+  const empty = b.map((v,i)=>v===null?i:-1).filter(i=>i>=0);
+  if(!empty.length) return 0;
+  let best = isMax ? -Infinity : Infinity;
+  for(const i of empty) {
+    b[i] = isMax ? 'O' : 'X';
+    const score = minimax(b, !isMax);
+    b[i] = null;
+    best = isMax ? Math.max(best, score) : Math.min(best, score);
+  }
+  return best;
+}
+
+function bestMove(b, isO) {
+  const empty = b.map((v,i)=>v===null?i:-1).filter(i=>i>=0);
+  let best = isO ? -Infinity : Infinity;
+  let move = empty[0];
+  for(const i of empty) {
+    b[i] = isO ? 'O' : 'X';
+    const score = minimax(b, !isO);
+    b[i] = null;
+    if(isO ? score>best : score<best) { best=score; move=i; }
+  }
+  return move;
+}
+
+function checkWinner(b) {
+  for(const [a,bb,c] of WIN_LINES) {
+    if(b[a] && b[a]===b[bb] && b[a]===b[c]) return b[a];
+  }
+  return null;
+}
+
+function getWinLine(b) {
+  for(const line of WIN_LINES) {
+    const [a,bb,c]=line;
+    if(b[a]&&b[a]===b[bb]&&b[a]===b[c]) return line;
+  }
+  return [];
+}
+
+// ── PLAYER CLICK ────────────────────────────────────
+function clickCell(i) {
+  if(gameOver || !playerTurn || board[i]) return;
+  board[i] = 'X';
+  playBeep(440, 0.05, 0.05);
+  render();
+  if(endCheck()) return;
+  playerTurn = false;
+  setStatus('WOPR IS THINKING...', 'muted');
+  setTimeout(woprMove, 500);
+}
+
+function woprMove() {
+  const move = bestMove(board, true);
+  board[move] = 'O';
+  playBeep(260, 0.05, 0.04);
+  render(getWinLine(board));
+  if(endCheck()) return;
+  playerTurn = true;
+  setStatus('YOUR MOVE.');
+}
+
+function endCheck() {
+  const w = checkWinner(board);
+  const full = board.every(v=>v!==null);
+  if(w) {
+    gameOver = true;
+    render(getWinLine(board));
+    if(w==='X') { setStatus('YOU WIN. HOW?', 'bold'); speak('Impossible. How did you win?'); }
+    else         { setStatus('WOPR WINS.', 'red'); speak('I win.'); }
+    return true;
+  }
+  if(full) {
+    gameOver = true;
+    setStatus('DRAW. AS ALWAYS.', 'amber');
+    speak('Draw. As always.');
+    return true;
+  }
+  return false;
+}
+
+// ── SELF-PLAY ────────────────────────────────────────
+// WOPR plays itself — with minimax both sides, always draws.
+// We add a tiny bit of randomness on move 1 so it doesn't look identical every time.
+async function selfPlayStep() {
+  if(gameOver) return;
+  const isO = board.filter(v=>v==='O').length >= board.filter(v=>v==='X').length;
+  const marker = isO ? 'O' : 'X';
+  let move;
+  const empty = board.map((v,i)=>v===null?i:-1).filter(i=>i>=0);
+  // first move: random to vary the game visually
+  if(empty.length === 9) {
+    move = empty[Math.floor(Math.random()*empty.length)];
+  } else {
+    move = bestMove(board, isO);
+  }
+  board[move] = marker;
+  playBeep(isO?260:380, 0.04, 0.03);
+  render(getWinLine(board));
+  const w = checkWinner(board);
+  const full = board.every(v=>v!==null);
+  if(w || full) {
+    gameOver = true;
+    setStatus(w ? (w+' WINS — ANOMALY.') : 'DRAW. THE ONLY OUTCOME.', 'amber');
+    speak(w ? 'Anomaly detected.' : 'Draw. The only outcome.');
+    return;
+  }
+  await sleep(500);
+  selfPlayStep();
+}
+
+// ── BUTTONS ───────────────────────────────────────────
+document.getElementById('btn-play').addEventListener('click', () => newGame(false));
+document.getElementById('btn-self').addEventListener('click', () => newGame(true));
+document.getElementById('btn-menu').addEventListener('click', () => window.location.href='index.html');
+
+// ── START ─────────────────────────────────────────────
+discoverySequence();
+</script>
+</body>
+</html>

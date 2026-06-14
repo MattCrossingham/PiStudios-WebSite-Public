@@ -1,200 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHECKERS - WOFTR</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-
-        body {
-            background-color: #000000;
-            color: #0088CC;
-            font-family: 'VT323', 'Courier New', monospace;
-            font-size: 22px;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.2;
-        }
-
-        table.board {
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 26px;
-        }
-
-        table.board td {
-            width: 32px;
-            height: 32px;
-            text-align: center;
-            border: 1px solid #0088CC;
-        }
-
-        .piece-red {
-            color: #FF3333;
-            font-weight: bold;
-        }
-
-        .piece-blue {
-            color: #0088CC;
-            font-weight: bold;
-        }
-
-        .input-wrapper {
-            display: flex;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .prompt {
-            color: #0088CC;
-            margin-right: 0;
-        }
-
-        .input-container {
-            display: flex;
-            align-items: center;
-        }
-
-        input {
-            background: transparent;
-            border: none;
-            color: #0088CC;
-            font-family: 'VT323', monospace;
-            font-size: 22px;
-            outline: none;
-            width: auto;
-            min-width: 10px;
-            caret-color: transparent;
-        }
-
-        .cursor {
-            display: inline-block;
-            width: 12px;
-            animation: blink 1s step-end infinite;
-        }
-
-        .status {
-            margin-top: 20px;
-            color: #FFB000;
-        }
-
-        @keyframes blink {
-            50% { opacity: 0; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOFTR — CHECKERS</title>
+<link rel="stylesheet" href="woftr.css">
+<style>
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    width: min(520px, 90vw);
+    aspect-ratio: 1;
+    border: 1px solid var(--cyan-dim);
+    margin: 0.6em 0;
+    box-shadow: 0 0 18px rgba(0,255,255,0.2);
+  }
+  .sq { position: relative; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .sq.light { background: rgba(0,255,255,0.07); }
+  .sq.dark  { background: rgba(0,255,255,0.02); }
+  .sq.sel   { box-shadow: inset 0 0 0 2px var(--cyan); }
+  .sq.move::after{ content:''; position:absolute; width:26%; height:26%; border-radius:50%;
+    background: rgba(0,255,255,0.5); box-shadow:0 0 8px var(--cyan); }
+  .pc { width:64%; height:64%; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:0.8em; }
+  .you  { background: radial-gradient(circle at 35% 30%, #c8ffff, #00a0a0); box-shadow:0 0 10px var(--cyan); color:#003; }
+  .wopr { background: radial-gradient(circle at 35% 30%, #0b2b2b, #001a1a);
+    box-shadow:0 0 8px var(--cyan-dim); color: var(--cyan); border:1px solid var(--cyan-dim); }
+  .king::after{ content:'\2654'; }
+  #status{ min-height:1.4em; margin-top:0.3em; }
+</style>
 </head>
 <body>
-    <div>
-        <div>CHECKERS - WOFTR</div>
-        <div style="margin-top:10px;">
-            <span class="piece-red">RED (YOU)</span> vs <span class="piece-blue">BLUE (WOFTR)</span>
-        </div>
-        
-        <table class="board" id="board"></table>
+<div class="console">
+  <div class="line title bold">CHECKERS</div>
+  <div class="line muted">YOU ARE LIGHT — WOPR IS DARK</div>
+  <hr class="divider">
+  <div id="board"></div>
+  <div id="status" class="line"></div>
+  <div><button class="btn" id="new">NEW GAME</button></div>
+  <div class="nav">&gt; <a href="index.html">RETURN TO MENU</a></div>
+  <div class="hint">FORCED CAPTURES APPLY. CLICK A PIECE, THEN A HIGHLIGHTED SQUARE. ESC = MENU</div>
+</div>
+<div id="sound-note">PRESS ANY KEY TO ENABLE SOUND</div>
+<script src="woftr.js"></script>
+<script>
+// 0 empty, 1 you (man), 2 you king, -1 wopr man, -2 wopr king
+let board, sel, gameOver;
+const boardEl=document.getElementById('board');
+const statusEl=document.getElementById('status');
+const isYou=v=>v>0, isWopr=v=>v<0, isKing=v=>Math.abs(v)===2;
+const inside=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+const clone=b=>b.map(r=>r.slice());
 
-        <div class="input-wrapper">
-            <span class="prompt">></span>
-            <div class="input-container">
-                <input type="text" id="move" placeholder="MOVE (e.g. A2 to B3)" autofocus oninput="adjustWidth(this)">
-                <span class="cursor">_</span>
-            </div>
-        </div>
+function newGame(){
+  board=Array.from({length:8},()=>Array(8).fill(0));
+  for(let r=0;r<3;r++)for(let c=0;c<8;c++) if((r+c)%2) board[r][c]=-1;       // WOPR top
+  for(let r=5;r<8;r++)for(let c=0;c<8;c++) if((r+c)%2) board[r][c]=1;        // you bottom
+  sel=null; gameOver=false; render(); setStatus('YOUR MOVE.');
+}
 
-        <div id="status" class="status"></div>
-    </div>
+function pieceMoves(b,r,c,capturesOnly){
+  const v=b[r][c]; if(v===0)return [];
+  const dirs = isKing(v) ? [[-1,-1],[-1,1],[1,-1],[1,1]]
+              : isYou(v) ? [[-1,-1],[-1,1]] : [[1,-1],[1,1]];
+  const out=[]; const caps=[];
+  for(const [dr,dc] of dirs){
+    const r1=r+dr,c1=c+dc;
+    if(inside(r1,c1)&&b[r1][c1]===0&&!capturesOnly) out.push({to:[r1,c1],cap:null});
+    const r2=r+2*dr,c2=c+2*dc;
+    if(inside(r2,c2)&&b[r2][c2]===0&&inside(r1,c1)&&b[r1][c1]!==0&&(isYou(b[r1][c1])!==isYou(v)))
+      caps.push({to:[r2,c2],cap:[r1,c1]});
+  }
+  return caps.length?caps:out;
+}
+function hasAnyCapture(b,you){
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const v=b[r][c]; if(v===0||isYou(v)!==you)continue;
+    if(pieceMoves(b,r,c,true).length) return true;
+  }
+  return false;
+}
+function legalFor(b,r,c){
+  const v=b[r][c]; if(v===0)return [];
+  const mustCap=hasAnyCapture(b,isYou(v));
+  const ms=pieceMoves(b,r,c,mustCap);
+  return mustCap? ms.filter(m=>m.cap) : ms;
+}
+function allMoves(b,you){
+  const list=[]; const mustCap=hasAnyCapture(b,you);
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const v=b[r][c]; if(v===0||isYou(v)!==you)continue;
+    for(const m of pieceMoves(b,r,c,mustCap)){
+      if(mustCap&&!m.cap)continue;
+      list.push({from:[r,c],...m});
+    }
+  }
+  return list;
+}
+function doMove(b,from,m){
+  const [r,c]=from,[tr,tc]=m.to;
+  b[tr][tc]=b[r][c]; b[r][c]=0;
+  if(m.cap) b[m.cap[0]][m.cap[1]]=0;
+  if(isYou(b[tr][tc])&&tr===0) b[tr][tc]=2;
+  if(isWopr(b[tr][tc])&&tr===7) b[tr][tc]=-2;
+}
 
-    <script>
-        function adjustWidth(input) {
-            input.style.width = ((input.value.length + 1) * 12) + 'px';
-        }
+function render(){
+  boardEl.innerHTML='';
+  const sl = sel?legalFor(board,sel[0],sel[1]):[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const d=document.createElement('div');
+    d.className='sq '+(((r+c)%2)?'dark':'light');
+    if(sel&&sel[0]===r&&sel[1]===c)d.classList.add('sel');
+    if(sl.some(m=>m.to[0]===r&&m.to[1]===c))d.classList.add('move');
+    const v=board[r][c];
+    if(v!==0){
+      const pc=document.createElement('div');
+      pc.className='pc '+(isYou(v)?'you':'wopr')+(isKing(v)?' king':'');
+      d.appendChild(pc);
+    }
+    d.addEventListener('click',()=>clickSq(r,c));
+    boardEl.appendChild(d);
+  }
+}
+function setStatus(t,cls=''){ statusEl.textContent=t; statusEl.className='line '+cls; }
 
-        let board = [
-            [' ','B',' ','B',' ','B',' ','B'],
-            ['B',' ','B',' ','B',' ','B',' '],
-            [' ','B',' ','B',' ','B',' ','B'],
-            [' ',' ',' ',' ',' ',' ',' ',' '],
-            [' ',' ',' ',' ',' ',' ',' ',' '],
-            ['R',' ','R',' ','R',' ','R',' '],
-            [' ','R',' ','R',' ','R',' ','R'],
-            ['R',' ','R',' ','R',' ','R',' ']
-        ];
+function clickSq(r,c){
+  if(gameOver)return;
+  const v=board[r][c];
+  if(sel){
+    const ms=legalFor(board,sel[0],sel[1]);
+    const m=ms.find(x=>x.to[0]===r&&x.to[1]===c);
+    if(m){
+      doMove(board,sel,m);
+      playBeep(m.cap?240:440,0.06,0.05);
+      // multi-jump continuation
+      if(m.cap && pieceMoves(board,r,c,true).some(x=>x.cap)){
+        sel=[r,c]; render(); setStatus('CONTINUE JUMPING.','amber'); return;
+      }
+      sel=null; render();
+      if(endCheck(false))return;
+      setStatus('WOPR IS THINKING...','muted');
+      setTimeout(woprTurn,600);
+      return;
+    }
+  }
+  if(v!==0&&isYou(v)){ sel=[r,c]; render(); playBeep(520,0.04,0.04); }
+  else { sel=null; render(); }
+}
 
-        function drawBoard() {
-            let html = '';
-            for (let y = 0; y < 8; y++) {
-                html += '<tr>';
-                for (let x = 0; x < 8; x++) {
-                    let cell = '';
-                    if (board[y][x] === 'R') {
-                        cell = '<span class="piece-red">R</span>';
-                    } else if (board[y][x] === 'B') {
-                        cell = '<span class="piece-blue">B</span>';
-                    }
-                    html += '<td>' + cell + '</td>';
-                }
-                html += '</tr>';
-            }
-            document.getElementById('board').innerHTML = html;
-        }
+// ── WOPR AI: greedy w/ capture preference + king bonus ───────
+function scoreBoard(b){ let s=0;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){ const v=b[r][c];
+    if(v<0) s+= isKing(v)?2.6:1; if(v>0) s-= isKing(v)?2.6:1; }
+  return s; }
+function woprTurn(){
+  let list=allMoves(board,false);
+  if(!list.length){ endCheck(true); return; }
+  // evaluate each (with one full multi-jump greedily resolved)
+  let best=null,bestScore=-Infinity;
+  for(const mv of list){
+    const nb=clone(board); let cur={from:mv.from,...mv};
+    doMove(nb,cur.from,cur);
+    let pos=cur.to;
+    while(cur.cap){ const more=pieceMoves(nb,pos[0],pos[1],true).filter(x=>x.cap);
+      if(!more.length)break; cur=more[0]; doMove(nb,pos,cur); pos=cur.to; }
+    const sc=scoreBoard(nb)+Math.random()*0.3;
+    if(sc>bestScore){bestScore=sc;best=mv;}
+  }
+  // execute best with multi-jump
+  let cur=best, pos=best.from;
+  doMove(board,cur.from,cur); pos=cur.to; let captured=!!cur.cap;
+  while(cur.cap){ const more=pieceMoves(board,pos[0],pos[1],true).filter(x=>x.cap);
+    if(!more.length)break; cur=more[0]; doMove(board,pos,cur); pos=cur.to; }
+  render(); playBeep(captured?200:320,0.07,0.05);
+  if(captured) speak('Captured.');
+  if(endCheck(true))return;
+  setStatus('YOUR MOVE.');
+}
 
-        function makeMove(from, to) {
-            const fx = from.charCodeAt(0) - 65;
-            const fy = parseInt(from[1]) - 1;
-            const tx = to.charCodeAt(0) - 65;
-            const ty = parseInt(to[1]) - 1;
+function endCheck(youToMove){
+  const list=allMoves(board,youToMove);
+  if(!list.length){
+    gameOver=true;
+    if(youToMove){ setStatus('NO MOVES. WOPR WINS.','red'); speak('I win. A strange game.'); }
+    else { setStatus('NO MOVES. YOU WIN.','bold'); speak('You win.'); }
+    return true;
+  }
+  const you=board.flat().filter(isYou).length;
+  const wp=board.flat().filter(isWopr).length;
+  if(you===0){ gameOver=true; setStatus('ALL PIECES LOST. WOPR WINS.','red'); speak('I win.'); return true; }
+  if(wp===0){ gameOver=true; setStatus('WOPR ELIMINATED. YOU WIN.','bold'); speak('You win.'); return true; }
+  return false;
+}
 
-            if (board[fy][fx] === 'R' && board[ty][tx] === ' ') {
-                board[ty][tx] = 'R';
-                board[fy][fx] = ' ';
-                document.getElementById('status').innerHTML = 'MOVE ACCEPTED';
-                drawBoard();
-                setTimeout(woftrMove, 700);
-            } else {
-                document.getElementById('status').innerHTML = 'INVALID MOVE';
-            }
-        }
-
-        function woftrMove() {
-            for (let y = 0; y < 8; y++) {
-                for (let x = 0; x < 8; x++) {
-                    if (board[y][x] === 'B') {
-                        if (y > 0 && x < 7 && board[y-1][x+1] === ' ') {
-                            board[y-1][x+1] = 'B';
-                            board[y][x] = ' ';
-                            document.getElementById('status').innerHTML = 'WOFTR MOVED';
-                            drawBoard();
-                            return;
-                        }
-                        if (y > 0 && x > 0 && board[y-1][x-1] === ' ') {
-                            board[y-1][x-1] = 'B';
-                            board[y][x] = ' ';
-                            document.getElementById('status').innerHTML = 'WOFTR MOVED';
-                            drawBoard();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-        document.getElementById('move').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const val = this.value.toUpperCase().trim();
-                this.value = '';
-
-                if (val.includes('TO')) {
-                    const parts = val.split('TO');
-                    const from = parts[0].trim();
-                    const to = parts[1].trim();
-                    makeMove(from, to);
-                } else {
-                    document.getElementById('status').innerHTML = 'USE FORMAT: A2 TO B3';
-                }
-            }
-        });
-
-        drawBoard();
-    </script>
+document.getElementById('new').addEventListener('click',newGame);
+newGame();
+</script>
 </body>
 </html>
