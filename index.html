@@ -502,12 +502,22 @@ gameInput.addEventListener('keypress',async e=>{
 
 
 window.addEventListener('load', () => {
-  // 80s modem dial-up feel before showing CONNECTING
   startModemHum();
+
+  const connectingLine = document.querySelector("#name-screen .line.muted");
+  let dots = 0;
+  const dotInterval = setInterval(() => {
+    dots = (dots + 1) % 4;
+    if (connectingLine) connectingLine.textContent = "CONNECTING" + ".".repeat(dots);
+  }, 260);
+
   setTimeout(() => {
-    const nameScreen = document.getElementById('name-screen');
-    nameScreen.classList.remove('hidden');
-  }, 1800);
+    clearInterval(dotInterval);
+    if (connectingLine) connectingLine.textContent = "CONNECTION ESTABLISHED";
+    const nameScreen = document.getElementById("name-screen");
+    nameScreen.classList.remove("hidden");
+    document.getElementById("name-input").focus();
+  }, 1850);
 });
 
 
