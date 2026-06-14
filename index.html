@@ -20,7 +20,7 @@
                 0 0 2px #00FFFF,
                 0 0 4px #00FFFF,
                 0 0 8px #00FFFF,
-                0 0 12px #00BFFF;
+                0 0 12px #0088CC;
         }
 
         .console {
@@ -242,8 +242,8 @@
 
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;
-            utterance.pitch = 0.35;
+            utterance.rate = 0.82;
+            utterance.pitch = 0.28;
             utterance.volume = 0.90;
             window.speechSynthesis.speak(utterance);
         }
