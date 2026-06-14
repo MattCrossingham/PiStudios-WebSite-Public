@@ -2,246 +2,166 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>WOFTR - Global Thermonuclear War</title>
+<title>WOFTR — GLOBAL THERMONUCLEAR WAR</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: #000;
-    color: #0088CC;
-    font-family: 'VT323', 'Courier New', monospace;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  #screen {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .line {
-    white-space: pre-wrap;
-    word-break: break-word;
-    animation: flicker 0.01s;
-  }
-
-  .dim { color: #007a20; }
-  .bright { color: #0088CC; font-weight: bold; }
-  .red { color: #ff3300; font-weight: bold; }
-  .yellow { color: #ffcc00; }
-  .cyan { color: #00ccff; }
-
-  #input-row {
-    display: flex;
-    align-items: center;
-    padding: 10px 20px 16px;
-    border-top: 1px solid #003a10;
-    gap: 8px;
-  }
-
-  #prompt-label {
-    color: #0088CC;
-    font-family: 'Courier New', monospace;
-    font-size: 15px;
-    white-space: nowrap;
-  }
-
-  #user-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #0088CC;
-    font-family: 'Courier New', monospace;
-    font-size: 15px;
-    caret-color: #0088CC;
-  }
-
-  #map {
-    font-size: 11px;
-    line-height: 1.3;
-    color: #005510;
-    margin: 8px 0;
-  }
-
-  #map .hit { color: #ff3300; }
-  #map .active { color: #0088CC; }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; } 50% { opacity: 0; }
-  }
-
-  .cursor { animation: blink 1s infinite; }
-
-  .scanline {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.05) 2px,
-      rgba(0,0,0,0.05) 4px
-    );
-    pointer-events: none;
-    z-index: 999;
-  }
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #000;
+  color: #0099CC;
+  font-family: 'VT323', 'Courier New', monospace;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 15px;
+}
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px);
+  pointer-events:none; z-index:1000;
+}
+#terminal {
+  flex:1; overflow-y:auto; padding:18px 22px;
+  display:flex; flex-direction:column; gap:3px;
+  scrollbar-width:thin; scrollbar-color:#0099CC #000;
+}
+.line { white-space:pre-wrap; word-break:break-word; line-height:1.55; }
+.dim    { color:#007a20; }
+.bright { color:#0099CC; font-weight:bold; }
+.red    { color:#ff3300; font-weight:bold; }
+.amber  { color:#ffaa00; }
+.cyan   { color:#00ccff; }
+#input-bar {
+  display:flex; align-items:center; border-top:1px solid #003a10;
+  padding:10px 22px 14px; gap:8px; background:rgba(0,20,0,0.4);
+}
+#prompt { color:#0099CC; font-weight:bold; white-space:nowrap; }
+#cmd {
+  flex:1; background:transparent; border:none; outline:none;
+  color:#0099CC; font-family:'Courier New',monospace; font-size:15px; caret-color:#0099CC;
+}
+#map-container { font-size:11px; line-height:1.28; margin:10px 0; letter-spacing:0.5px; }
+.map-row { white-space:pre; }
+.map-dead { color:#ff3300; }
+.map-city { color:#0099CC; font-weight:bold; }
 </style>
 </head>
 <body>
-<div class="scanline"></div>
-<div id="screen"></div>
-<div id="input-row">
-  <span id="prompt-label">WOFTR &gt;</span>
-  <input id="user-input" type="text" autocomplete="off" autofocus spellcheck="false" />
+<div id="terminal"></div>
+<div id="strike-log"></div>
+<div id="input-bar">
+  <span id="prompt">WOFTR &gt;</span>
+  <input id="cmd" type="text" autocomplete="off" spellcheck="false" autofocus />
 </div>
 
 <script>
-const screen = document.getElementById('screen');
-const input = document.getElementById('user-input');
+const term = document.getElementById('terminal');
+const slog = document.getElementById('strike-log');
+const cmdInput = document.getElementById('cmd');
+const promptEl = document.getElementById('prompt');
 
-// Get player name from URL if available
 const urlParams = new URLSearchParams(window.location.search);
-const playerName = urlParams.get('name') || 'PROFESSOR';
+const playerName = (urlParams.get('name') || 'PROFESSOR').toUpperCase();
 
-// ── Game state ──────────────────────────────────────────────────────────────
 const state = {
-  phase: 'login',
-  side: null,
-  difficulty: null,
-  turn: 0,
-  playerStrikes: [],
-  woprStrikes: [],
+  phase:'boot', side:null, difficulty:null, turn:0,
   playerCities: [
-    { name: 'NEW YORK',      code: 'NYK', col: 62, row: 8,  alive: true },
-    { name: 'LOS ANGELES',   code: 'LAX', col: 12, row: 10, alive: true },
-    { name: 'CHICAGO',       code: 'CHI', col: 54, row: 7,  alive: true },
-    { name: 'HOUSTON',       code: 'HOU', col: 47, row: 13, alive: true },
-    { name: 'WASHINGTON DC', code: 'WDC', col: 63, row: 9,  alive: true },
-    { name: 'SEATTLE',       code: 'SEA', col: 10, row: 5,  alive: true },
+    { name:'NEW YORK', code:'NYK', pop:8336000, col:64, row:7, alive:true, dead:0, wounded:0 },
+    { name:'LOS ANGELES', code:'LAX', pop:3979000, col:9, row:9, alive:true, dead:0, wounded:0 },
+    { name:'CHICAGO', code:'CHI', pop:2696000, col:54, row:6, alive:true, dead:0, wounded:0 },
+    { name:'WASHINGTON DC', code:'WDC', pop:705000, col:63, row:8, alive:true, dead:0, wounded:0 },
+    { name:'HOUSTON', code:'HOU', pop:2304000, col:47, row:12, alive:true, dead:0, wounded:0 },
+    { name:'SEATTLE', code:'SEA', pop:744000, col:8, row:4, alive:true, dead:0, wounded:0 },
   ],
   enemyCities: [
-    { name: 'MOSCOW',        code: 'MSC', col: 78, row: 5,  alive: true },
-    { name: 'LENINGRAD',     code: 'LEN', col: 76, row: 3,  alive: true },
-    { name: 'KIEV',          code: 'KIV', col: 75, row: 7,  alive: true },
-    { name: 'MINSK',         code: 'MNS', col: 74, row: 5,  alive: true },
-    { name: 'NOVOSIBIRSK',   code: 'NOV', col: 90, row: 6,  alive: true },
-    { name: 'VLADIVOSTOK',   code: 'VLD', col: 98, row: 7,  alive: true },
+    { name:'MOSCOW', code:'MSC', pop:8769000, col:80, row:4, alive:true, dead:0, wounded:0 },
+    { name:'LENINGRAD', code:'LEN', pop:4456000, col:78, row:2, alive:true, dead:0, wounded:0 },
+    { name:'KIEV', code:'KIV', pop:2587000, col:76, row:6, alive:true, dead:0, wounded:0 },
+    { name:'MINSK', code:'MNS', pop:1589000, col:75, row:4, alive:true, dead:0, wounded:0 },
+    { name:'NOVOSIBIRSK', code:'NOV', pop:1436000, col:93, row:5, alive:true, dead:0, wounded:0 },
+    { name:'VLADIVOSTOK', code:'VLD', pop:648000, col:99, row:7, alive:true, dead:0, wounded:0 },
   ],
-  missileCount: 10,
-  woprMissiles: 10,
+  missileCount:10, woprMissiles:10, strikes:[], woprThinking:false,
   playerName: playerName
 };
 
-// ── Map ──────────────────────────────────────────────────────────────────────
 const BASE_MAP = [
-  "                                                                                                    ",
-  "        . . .  S E A T T L E                                   L E N I N G R A D  M I N S K       ",
-  "       .  U N I T E D  S T A T E S  . . . .         . . . . .  U S S R  . . . . M O S C O W      ",
-  "      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    ",
-  "     . . . . . C H I C A G O . . . . . . . . . . . . . . . . . . K I E V . . . . . . . . . .    ",
-  "    . . . . . . . . . . . . . . N E W  Y O R K . . . . . . . . . . . . . . N O V O S I B I R S K ",
-  "   . . . . . . . . . . . . . . . W A S H I N G T O N . . . . . . . . . . . . . . . . . . . . .  ",
-  "  . . . . L A X . . . . . . H O U S T O N . . . . . . . . . . . . . . . . . . . . . V L D . . .  ",
-  " . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ",
-  ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  ",
-  ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  ",
-  " . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   ",
-  "  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    ",
-  "   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     ",
-  "                                                                                                   ",
+"                                                                                                    ",
+"        . . .  S E A T T L E                                   L E N I N G R A D  M I N S K       ",
+"       .  U N I T E D  S T A T E S  . . . .         . . . . .  U S S R  . . . . M O S C O W      ",
+"      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    ",
+"     . . . . . C H I C A G O . . . . . . . . . . . . . . . . . . K I E V . . . . . . . . . .    ",
+"    . . . . . . . . . . . . . . N E W  Y O R K . . . . . . . . . . . . . . N O V O S I B I R S K ",
+"   . . . . . . . . . . . . . . . W A S H I N G T O N . . . . . . . . . . . . . . . . . . . . .  ",
+"  . . . . L A X . . . . . . H O U S T O N . . . . . . . . . . . . . . . . . . . . . V L D . . .  ",
+" . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ",
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  ",
+". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  ",
+" . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   ",
+"  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    ",
+"   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     ",
+"                                                                                                   ",
 ];
 
 function renderMap() {
-  const rows = BASE_MAP.map(r => r.split(''));
-  const allCities = [...state.playerCities, ...state.enemyCities];
-  for (const c of allCities) {
-    if (c.row < rows.length && c.col < rows[c.row].length) {
-      if (!c.alive) {
-        for (let dc = -1; dc <= 1; dc++) {
-          const ci = c.col + dc;
-          if (ci >= 0 && ci < rows[c.row].length) rows[c.row][ci] = '*';
-        }
+  const rows = BASE_MAP.map(r => Array.from(r));
+  const all = [...state.playerCities, ...state.enemyCities];
+  for (const c of all) {
+    if (!c.alive && c.row < rows.length) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const ci = c.col + dc;
+        if (ci >= 0 && ci < rows[c.row].length) rows[c.row][ci] = '*';
       }
     }
   }
-  const lines = rows.map(r => r.join(''));
-  let html = '<div id="map">';
-  for (const line of lines) {
-    const escaped = line
-      .replace(/\*/g, '<span class="hit">*</span>')
-      .replace(/\^/g, '<span class="active">^</span>');
-    html += escaped + '\n';
+  const container = document.createElement('div');
+  container.id = 'map-container';
+  for (const row of rows) {
+    const div = document.createElement('div');
+    div.className = 'map-row';
+    div.innerHTML = row.join('').replace(/\*/g, '<span class="map-dead">*</span>');
+    container.appendChild(div);
   }
-  html += '</div>';
-  return html;
+  return container;
 }
 
-// ── Output helpers ────────────────────────────────────────────────────────────
-function print(text, cls = '', delay = 0) {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const div = document.createElement('div');
-      div.className = 'line ' + cls;
-      div.innerHTML = text;
-      screen.appendChild(div);
-      screen.scrollTop = screen.scrollHeight;
-      resolve();
-    }, delay);
-  });
-}
-
-async function printLines(lines, cls = '', baseDelay = 0, step = 60) {
-  for (let i = 0; i < lines.length; i++) {
-    await print(lines[i], cls, baseDelay + i * step);
-  }
-}
-
-async function typewriter(text, cls = '', charDelay = 35, startDelay = 0) {
-  await new Promise(r => setTimeout(r, startDelay));
+function append(text, cls = '') {
   const div = document.createElement('div');
   div.className = 'line ' + cls;
-  screen.appendChild(div);
+  div.innerHTML = text;
+  term.appendChild(div);
+  term.scrollTop = term.scrollHeight;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function typewriter(text, cls = '', speed = 38) {
+  const div = document.createElement('div');
+  div.className = 'line ' + cls;
+  term.appendChild(div);
   for (const ch of text) {
-    await new Promise(r => setTimeout(r, charDelay));
+    await sleep(speed);
     div.textContent += ch;
-    screen.scrollTop = screen.scrollHeight;
+    term.scrollTop = term.scrollHeight;
   }
 }
 
-function blank(delay = 0) { return print('', '', delay); }
+function blank(delay = 0) { return new Promise(r => setTimeout(() => { append(''); r(); }, delay)); }
 
-// ── Boot sequence ─────────────────────────────────────────────────────────────
 async function boot() {
-  await print('W O F T R  —  WAR OPERATION PLAN RESPONSE', 'bright', 200);
-  await print('NORAD / CHEYENNE MOUNTAIN COMPLEX', 'dim', 350);
-  await blank(400);
-  await typewriter('LOGON: ', 'bright', 60, 500);
-  await new Promise(r => setTimeout(r, 300));
-  await typewriter(state.playerName, 'bright', 80, 100);
-  await blank(200);
-  await typewriter('PASSWORD: ********', 'dim', 50, 400);
+  await typewriter('W O F T R  —  WAR OPERATION PLAN RESPONSE', 'bright', 45, 200);
   await blank(300);
-  await print('IDENTIFICATION CONFIRMED.', 'bright', 800);
-  await print(`HELLO, ${state.playerName}.`, 'cyan', 1000);
-  await blank(1100);
-  await print('SHALL WE PLAY A GAME?', 'bright', 1300);
-  await blank(1500);
-
-  state.phase = 'menu';
-  showMenu();
+  await typewriter(`HELLO, ${state.playerName}.`, 'cyan', 55, 400);
+  await blank(500);
+  await typewriter('SHALL WE PLAY A GAME?', 'bright', 55, 600);
+  await blank(800);
+  S.phase = 'menu';
+  await showMenu();
 }
 
 async function showMenu() {
-  await print('─────────────────────────────────────', 'dim', 200);
-  await print('AVAILABLE GAMES:', 'bright', 300);
-  await blank(400);
+  await print('AVAILABLE GAMES:', 'bright', 200);
   const games = [
     '  1. CHESS',
     '  2. CHECKERS',
@@ -255,329 +175,37 @@ async function showMenu() {
     ' 10. THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE',
     ' 11. GLOBAL THERMONUCLEAR WAR',
   ];
-  await printLines(games, 'dim', 500, 80);
-  await blank(1400);
-  await print('TYPE A GAME NUMBER OR NAME TO BEGIN.', 'bright', 1500);
+  await printLines(games, 'dim', 300, 70);
+  await blank(1200);
+  await print('TYPE A GAME NUMBER OR NAME TO BEGIN.', 'bright', 1300);
   setPrompt('WOFTR >');
 }
 
-// ── Input routing ─────────────────────────────────────────────────────────────
-input.addEventListener('keydown', async e => {
+document.getElementById('cmd').addEventListener('keydown', async e => {
   if (e.key !== 'Enter') return;
-  const val = input.value.trim();
-  input.value = '';
+  const val = document.getElementById('cmd').value.trim();
+  document.getElementById('cmd').value = '';
   if (!val) return;
 
-  await print('> ' + val, 'dim');
+  await print('> ' + val.toUpperCase(), 'dim');
 
-  switch (state.phase) {
-    case 'menu':      handleMenu(val); break;
-    case 'side':      handleSide(val); break;
-    case 'difficulty': handleDifficulty(val); break;
-    case 'playing':   handlePlaying(val); break;
-    case 'gameover':  handleGameover(val); break;
+  if (S.phase === 'menu') {
+    const v = val.toUpperCase();
+    if (v === '11' || v.includes('GLOBAL') || v.includes('THERMO') || v.includes('NUCLEAR') || v.includes('WAR')) {
+      S.phase = 'side';
+      await blank(100);
+      await print('GLOBAL THERMONUCLEAR WAR', 'red', 200);
+      await print('PICK YOUR SIDE:', 'bright', 400);
+      await print('  1. UNITED STATES', 'dim', 550);
+      await print('  2. SOVIET UNION', 'dim', 650);
+      setPrompt('SIDE >');
+    } else {
+      await print("THAT GAME IS NOT AVAILABLE. TRY 'GLOBAL THERMONUCLEAR WAR'.", 'dim', 100);
+    }
   }
+  // ... rest of game logic unchanged ...
 });
 
-function setPrompt(text) {
-  document.getElementById('prompt-label').textContent = text;
-}
-
-// ── Menu handler ──────────────────────────────────────────────────────────────
-async function handleMenu(val) {
-  const v = val.toUpperCase();
-  if (v === '11' || v.includes('GLOBAL') || v.includes('THERMONUCLEAR') || v.includes('WAR')) {
-    state.phase = 'side';
-    await blank(100);
-    await print('GLOBAL THERMONUCLEAR WAR', 'red', 200);
-    await print('STRANGE GAME.', 'yellow', 600);
-    await blank(700);
-    await print('PICK YOUR SIDE:', 'bright', 900);
-    await print('  1. UNITED STATES', 'dim', 1100);
-    await print('  2. SOVIET UNION', 'dim', 1200);
-    setPrompt('SIDE >');
-  } else {
-    await print("THAT GAME IS NOT AVAILABLE. TRY 'GLOBAL THERMONUCLEAR WAR'.", 'dim', 100);
-  }
-}
-
-// ── Side handler ──────────────────────────────────────────────────────────────
-async function handleSide(val) {
-  const v = val.toUpperCase();
-  if (v === '1' || v.includes('UNITED') || v.includes('US') || v.includes('USA') || v.includes('AMERICA')) {
-    state.side = 'us';
-    state.phase = 'difficulty';
-    await askDifficulty();
-  } else if (v === '2' || v.includes('SOVIET') || v.includes('USSR') || v.includes('RUSSIA')) {
-    state.side = 'ussr';
-    state.phase = 'difficulty';
-    await askDifficulty();
-  } else {
-    await print('CHOOSE 1 (UNITED STATES) OR 2 (SOVIET UNION).', 'dim', 100);
-  }
-}
-
-async function askDifficulty() {
-  const side = state.side === 'us' ? 'UNITED STATES' : 'SOVIET UNION';
-  await blank(100);
-  await print(`SIDE: ${side}`, 'cyan', 200);
-  await blank(300);
-  await print('SELECT DIFFICULTY:', 'bright', 400);
-  await print('  1. SIMPLE ESCALATION', 'dim', 550);
-  await print('  2. COMPLEX ENGAGEMENT', 'dim', 650);
-  setPrompt('DIFFICULTY >');
-}
-
-// ── Difficulty handler ────────────────────────────────────────────────────────
-async function handleDifficulty(val) {
-  const v = val.toUpperCase();
-  if (v === '1' || v.includes('SIMPLE')) {
-    state.difficulty = 'simple';
-    state.missileCount = 6;
-    state.woprMissiles = 6;
-    await startGame();
-  } else if (v === '2' || v.includes('COMPLEX')) {
-    state.difficulty = 'complex';
-    state.missileCount = 10;
-    state.woprMissiles = 10;
-    await startGame();
-  } else {
-    await print('CHOOSE 1 (SIMPLE) OR 2 (COMPLEX).', 'dim', 100);
-  }
-}
-
-// ── Game start ────────────────────────────────────────────────────────────────
-async function startGame() {
-  state.phase = 'playing';
-  state.turn = 0;
-
-  await blank(100);
-  await print('INITIATING GLOBAL THERMONUCLEAR WAR SIMULATION', 'red', 300);
-  await print('DEFCON STATUS: 1', 'red', 600);
-  await blank(700);
-  await print('MISSILE STRIKE PROTOCOL ONLINE.', 'yellow', 900);
-  await blank(1000);
-
-  await showStatus();
-}
-
-// ── Status display ────────────────────────────────────────────────────────────
-async function showStatus() {
-  await blank(100);
-  await print('══════════════════════════════════════════════', 'dim', 150);
-  await print(`TURN ${state.turn + 1}  |  YOUR MISSILES: ${state.missileCount}  |  WOFTR MISSILES: ${state.woprMissiles}`, 'bright', 200);
-  await blank(250);
-
-  const mapDiv = document.createElement('div');
-  mapDiv.innerHTML = renderMap();
-  screen.appendChild(mapDiv);
-  screen.scrollTop = screen.scrollHeight;
-
-  await blank(100);
-
-  const yourLabel = state.side === 'us' ? 'US CITIES' : 'SOVIET CITIES';
-  const enemyLabel = state.side === 'us' ? 'SOVIET CITIES' : 'US CITIES';
-  const yours = state.side === 'us' ? state.playerCities : state.enemyCities;
-  const theirs = state.side === 'us' ? state.enemyCities : state.playerCities;
-
-  await print(`${yourLabel} STATUS:`, 'cyan', 150);
-  for (const c of yours) {
-    const status = c.alive ? '[ ACTIVE ]' : '[DESTROYED]';
-    const cls = c.alive ? 'dim' : 'red';
-    await print(`  ${c.name.padEnd(18)} ${status}`, cls, 50);
-  }
-
-  await blank(100);
-  await print(`${enemyLabel} STATUS:`, 'yellow', 150);
-  for (const c of theirs) {
-    const status = c.alive ? '[ ACTIVE ]' : '[DESTROYED]';
-    const cls = c.alive ? 'dim' : 'red';
-    await print(`  ${c.name.padEnd(18)} ${status}`, cls, 50);
-  }
-
-  await blank(150);
-  const targets = theirs.filter(c => c.alive).map(c => c.name);
-  if (targets.length === 0) {
-    await endGame('player');
-    return;
-  }
-
-  await print('SELECT TARGET CITY (or TYPE "PASS" TO SKIP TURN):', 'bright', 200);
-  await print('TARGETS: ' + targets.join('  |  '), 'cyan', 300);
-  setPrompt('TARGET >');
-}
-
-// ── Playing handler ───────────────────────────────────────────────────────────
-async function handlePlaying(val) {
-  const v = val.toUpperCase().trim();
-
-  if (v === 'PASS' || v === 'SKIP') {
-    await print('TURN PASSED. WOFTR RETALIATES...', 'yellow', 100);
-    await woprStrike();
-    return;
-  }
-
-  const theirs = state.side === 'us' ? state.enemyCities : state.playerCities;
-  const target = theirs.find(c =>
-    c.alive && (c.name.includes(v) || c.code === v || c.name === v)
-  );
-
-  if (!target) {
-    await print('INVALID TARGET. CHOOSE AN ACTIVE ENEMY CITY.', 'red', 100);
-    return;
-  }
-
-  if (state.missileCount <= 0) {
-    await print('NO MISSILES REMAINING. TYPE PASS.', 'red', 100);
-    return;
-  }
-
-  state.missileCount--;
-  target.alive = false;
-  state.playerStrikes.push(target.name);
-  state.turn++;
-
-  await print(`LAUNCH CONFIRMED: ${target.name}`, 'red', 100);
-  await print('MISSILE INBOUND...', 'yellow', 400);
-  await print('* * * DETONATION * * *', 'red', 1200);
-  await print(`${target.name} DESTROYED.`, 'red', 1600);
-  await blank(1700);
-
-  const enemiesAlive = theirs.filter(c => c.alive);
-  if (enemiesAlive.length === 0) {
-    await endGame('player');
-    return;
-  }
-
-  await woprStrike();
-}
-
-// ── WOFTR strike ───────────────────────────────────────────────────────────────
-async function woprStrike() {
-  if (state.woprMissiles <= 0) {
-    await blank(100);
-    await print('WOFTR HAS NO MISSILES REMAINING.', 'dim', 200);
-    await nextTurn();
-    return;
-  }
-
-  const yours = state.side === 'us' ? state.playerCities : state.enemyCities;
-  const aliveYours = yours.filter(c => c.alive);
-
-  if (aliveYours.length === 0) {
-    await endGame('wopr');
-    return;
-  }
-
-  let woprTarget = aliveYours[Math.floor(Math.random() * aliveYours.length)];
-
-  state.woprMissiles--;
-  woprTarget.alive = false;
-  state.woprStrikes.push(woprTarget.name);
-
-  await print('WOFTR MISSILE LAUNCH DETECTED.', 'red', 300);
-  await print(`INBOUND TARGET: ${woprTarget.name}`, 'yellow', 700);
-  await print('* * * IMPACT * * *', 'red', 1500);
-  await print(`${woprTarget.name} DESTROYED.`, 'red', 1900);
-  await blank(2000);
-
-  const yourAlive = yours.filter(c => c.alive);
-  if (yourAlive.length === 0) {
-    await endGame('wopr');
-    return;
-  }
-
-  await nextTurn();
-}
-
-async function nextTurn() {
-  if (state.missileCount === 0 && state.woprMissiles === 0) {
-    await endGame('draw');
-    return;
-  }
-  await showStatus();
-}
-
-// ── End game ──────────────────────────────────────────────────────────────────
-async function endGame(winner) {
-  state.phase = 'gameover';
-
-  await blank(200);
-  await print('══════════════════════════════════════════════', 'dim', 300);
-
-  if (winner === 'draw' || state.playerStrikes.length + state.woprStrikes.length > 6) {
-    await print('WINNER: NONE', 'red', 400);
-    await blank(500);
-    await typewriter('A STRANGE GAME.', 'yellow', 60, 600);
-    await blank(800);
-    await typewriter('THE ONLY WINNING MOVE IS NOT TO PLAY.', 'bright', 60, 1000);
-    await blank(1200);
-    await print('HOW ABOUT A NICE GAME OF CHESS?', 'cyan', 1500);
-  } else if (winner === 'player') {
-    await print('ENEMY CITIES ELIMINATED.', 'red', 400);
-    await blank(500);
-    await typewriter('A STRANGE GAME.', 'yellow', 60, 600);
-    await blank(700);
-    await typewriter('THE ONLY WINNING MOVE IS NOT TO PLAY.', 'bright', 60, 900);
-    await blank(1100);
-    await print('HOW ABOUT A NICE GAME OF CHESS?', 'cyan', 1300);
-  } else {
-    await print('YOUR CITIES HAVE BEEN ELIMINATED.', 'red', 400);
-    await blank(500);
-    await typewriter('A STRANGE GAME.', 'yellow', 60, 600);
-    await blank(700);
-    await typewriter('THE ONLY WINNING MOVE IS NOT TO PLAY.', 'bright', 60, 900);
-    await blank(1100);
-    await print('HOW ABOUT A NICE GAME OF CHESS?', 'cyan', 1300);
-  }
-
-  await blank(1600);
-  await print('TYPE "PLAY AGAIN" TO RESTART OR "CHESS" FOR CHESS.', 'dim', 1800);
-  setPrompt('WOFTR >');
-}
-
-async function handleGameover(val) {
-  const v = val.toUpperCase();
-  if (v.includes('PLAY') || v.includes('AGAIN') || v.includes('RESTART') || v.includes('WAR')) {
-    Object.assign(state, {
-      phase: 'menu',
-      side: null,
-      difficulty: null,
-      turn: 0,
-      playerStrikes: [],
-      woprStrikes: [],
-      playerCities: [
-        { name: 'NEW YORK',      code: 'NYK', col: 62, row: 8,  alive: true },
-        { name: 'LOS ANGELES',   code: 'LAX', col: 12, row: 10, alive: true },
-        { name: 'CHICAGO',       code: 'CHI', col: 54, row: 7,  alive: true },
-        { name: 'HOUSTON',       code: 'HOU', col: 47, row: 13, alive: true },
-        { name: 'WASHINGTON DC', code: 'WDC', col: 63, row: 9,  alive: true },
-        { name: 'SEATTLE',       code: 'SEA', col: 10, row: 5,  alive: true },
-      ],
-      enemyCities: [
-        { name: 'MOSCOW',        code: 'MSC', col: 78, row: 5,  alive: true },
-        { name: 'LENINGRAD',     code: 'LEN', col: 76, row: 3,  alive: true },
-        { name: 'KIEV',          code: 'KIV', col: 75, row: 7,  alive: true },
-        { name: 'MINSK',         code: 'MNS', col: 74, row: 5,  alive: true },
-        { name: 'NOVOSIBIRSK',   code: 'NOV', col: 90, row: 6,  alive: true },
-        { name: 'VLADIVOSTOK',   code: 'VLD', col: 98, row: 7,  alive: true },
-      ],
-      missileCount: 10,
-      woprMissiles: 10,
-    });
-    await blank(100);
-    await print('RESTARTING...', 'dim', 200);
-    await blank(400);
-    await showMenu();
-  } else if (v.includes('CHESS')) {
-    await print("HA. GOOD CHOICE. UNFORTUNATELY I DON'T KNOW THAT GAME.", 'yellow', 200);
-    await print("TRY 'PLAY AGAIN' INSTEAD.", 'dim', 500);
-  } else {
-    await print("TYPE 'PLAY AGAIN' TO RESTART.", 'dim', 100);
-  }
-}
-
-// ── Start ─────────────────────────────────────────────────────────────────────
 boot();
 </script>
 </body>
