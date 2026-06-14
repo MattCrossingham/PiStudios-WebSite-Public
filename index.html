@@ -481,6 +481,16 @@ gameInput.addEventListener('keypress',async e=>{
   await launchGame(cmd);
 });
 
+
+window.addEventListener('load', () => {
+  // 80s modem dial-up feel before showing CONNECTING
+  startModemHum();
+  setTimeout(() => {
+    const nameScreen = document.getElementById('name-screen');
+    nameScreen.style.opacity = '1';
+  }, 1800);
+});
+
 </script>
 </body>
 </html>
