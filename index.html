@@ -278,7 +278,7 @@ function speak(text){
     for(const word of words){
       const u=new SpeechSynthesisUtterance(word);
       if(woprVoice) u.voice=woprVoice;
-      u.rate=1.155;        // brisk but clipped, one word at a time
+      u.rate=1.21;        // brisk but clipped, one word at a time
       u.pitch=0.3;        // constant low pitch = no inflection
       u.volume=0.9;
       window.speechSynthesis.speak(u);
