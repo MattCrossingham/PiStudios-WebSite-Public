@@ -1,1 +1,479 @@
-            utterance.rate = 1.0;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOFTR</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+:root {
+  --cyan: #00FFFF;
+  --cyan-dim: rgba(0,255,255,0.4);
+  --bg: #000;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--cyan);
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: clamp(20px, 2.2vw, 26px);
+  line-height: 1.55;
+  text-transform: uppercase;
+  overflow-x: hidden;
+}
+
+body { text-shadow: 0 0 6px var(--cyan), 0 0 14px var(--cyan-dim); }
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 3px,
+    rgba(0,255,255,0.03) 3px, rgba(0,255,255,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9997;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.72) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.console {
+  width: min(780px, 92vw);
+  margin: 0 auto;
+  padding: clamp(28px, 7vh, 80px) 0 40px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.line { margin-bottom: 2px; letter-spacing: 0.03em; }
+.line.muted { color: var(--cyan-dim); text-shadow: none; }
+.line.bold {
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px var(--cyan), 0 0 22px var(--cyan-dim), 0 0 40px rgba(0,255,255,0.1);
+}
+.spacer { height: 1.2em; }
+
+hr.divider {
+  border: none;
+  border-top: 1px solid rgba(0,255,255,0.25);
+  margin: 1em 0;
+}
+
+.input-row { display: flex; align-items: center; gap: 8px; margin-top: 1.4em; }
+.prompt { flex-shrink: 0; }
+.input-wrap { position: relative; display: flex; align-items: center; }
+
+input[type="text"] {
+  background: transparent;
+  border: none;
+  color: var(--cyan);
+  font-family: 'VT323', monospace;
+  font-size: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  outline: none;
+  width: 1ch;
+  min-width: 1ch;
+  caret-color: transparent;
+  text-shadow: 0 0 6px var(--cyan), 0 0 14px var(--cyan-dim);
+}
+
+.cursor {
+  display: inline-block;
+  width: 13px;
+  height: 1em;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan), 0 0 16px var(--cyan-dim);
+  vertical-align: middle;
+  margin-left: 2px;
+  animation: blink 1.1s step-end infinite;
+}
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+.menu-item {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  padding: 1px 0;
+  letter-spacing: 0.05em;
+}
+.menu-item.visible { opacity: 1; }
+.menu-item.clickable { cursor: pointer; }
+.menu-item.clickable:hover { color: #fff; text-shadow: 0 0 8px #fff, 0 0 20px var(--cyan); }
+.menu-item.accent { text-shadow: 0 0 10px var(--cyan), 0 0 24px var(--cyan-dim); letter-spacing: 0.1em; }
+
+#menu-response, #game-response {
+  min-height: 2em;
+  margin-top: 0.8em;
+  color: var(--cyan-dim);
+  font-size: 0.9em;
+  text-shadow: none;
+}
+
+.hint {
+  font-size: 0.75em;
+  color: rgba(0,255,255,0.3);
+  margin-top: 2em;
+  text-shadow: none;
+  letter-spacing: 0.06em;
+}
+
+.hidden { display: none !important; }
+
+/* sound prompt */
+#sound-note {
+  position: fixed;
+  bottom: 14px; right: 16px;
+  font-size: 0.7em;
+  color: rgba(0,255,255,0.35);
+  text-shadow: none;
+  z-index: 9999;
+  letter-spacing: 0.05em;
+}
+</style>
+</head>
+<body>
+<div class="console">
+
+  <!-- NAME ENTRY -->
+  <div id="name-screen">
+    <div class="line muted">CONNECTING...</div>
+    <div class="line muted">CONNECTION ESTABLISHED</div>
+    <div class="spacer"></div>
+    <div class="line bold">GREETINGS.</div>
+    <div class="line">PLEASE ENTER YOUR NAME.</div>
+    <div class="input-row">
+      <span class="prompt">&gt;</span>
+      <div class="input-wrap">
+        <input type="text" id="name-input" autofocus autocomplete="off" spellcheck="false">
+        <span class="cursor" id="name-cursor"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSWORD SCREEN -->
+  <div id="password-screen" class="hidden">
+    <div class="line muted">CONNECTING...</div>
+    <div class="line muted">CONNECTION ESTABLISHED</div>
+    <div class="spacer"></div>
+    <div class="line bold">GREETINGS.</div>
+    <div class="line">PLEASE ENTER YOUR NAME.</div>
+    <div class="line" style="margin-top:0.3em">&gt;&nbsp;<span id="entered-name"></span></div>
+    <div class="line" style="margin-top:0.2em">
+      PASSWORD:&nbsp;<span id="password-stars"></span><span class="cursor" id="pw-cursor"></span>
+    </div>
+    <div class="line bold hidden" id="id-confirmed" style="margin-top:0.9em;">IDENTIFICATION CONFIRMED.</div>
+  </div>
+
+  <!-- MAIN MENU -->
+  <div id="main-menu" class="hidden">
+    <div class="line bold" id="greeting-line"></div>
+    <div class="line muted" style="margin-top:0.15em;">PI STUDIOS COMMAND CENTRE</div>
+    <hr class="divider">
+    <div id="menu-items-container"></div>
+    <div class="input-row">
+      <span class="prompt">&gt;</span>
+      <div class="input-wrap">
+        <input type="text" id="menu-input" autocomplete="off" spellcheck="false">
+        <span class="cursor"></span>
+      </div>
+    </div>
+    <div id="menu-response"></div>
+  </div>
+
+  <!-- GAMES SCREEN -->
+  <div id="games-screen" class="hidden">
+    <div class="line muted">ACCESSING WOFTR...</div>
+    <div class="line bold" style="margin-top:0.4em;">SHALL WE PLAY A GAME?</div>
+    <hr class="divider">
+    <div id="games-items-container"></div>
+    <div class="input-row">
+      <span class="prompt">&gt;</span>
+      <div class="input-wrap">
+        <input type="text" id="game-input" autocomplete="off" spellcheck="false">
+        <span class="cursor"></span>
+      </div>
+    </div>
+    <div id="game-response"></div>
+    <div class="hint">TYPE MENU TO RETURN TO MAIN MENU</div>
+  </div>
+
+</div>
+<div id="sound-note">PRESS ANY KEY TO ENABLE SOUND</div>
+
+<script>
+// ── AUDIO ─────────────────────────────────────────────────────
+let audioCtx;
+function getCtx(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+function playKeyClick(){
+  try{
+    const ctx=getCtx(),osc=ctx.createOscillator(),gain=ctx.createGain(),flt=ctx.createBiquadFilter();
+    osc.type='sawtooth'; osc.frequency.value=160+Math.random()*140;
+    flt.type='lowpass'; flt.frequency.value=1100; gain.gain.value=0.08;
+    const d=0.03+Math.random()*0.02;
+    osc.connect(flt);flt.connect(gain);gain.connect(ctx.destination);
+    osc.start();osc.stop(ctx.currentTime+d);
+    gain.gain.linearRampToValueAtTime(0.001,ctx.currentTime+d);
+  }catch(e){}
+}
+function startHum(){
+  try{
+    const ctx=getCtx(),osc=ctx.createOscillator(),gain=ctx.createGain(),flt=ctx.createBiquadFilter();
+    osc.type='sine';osc.frequency.value=78;
+    flt.type='lowpass';flt.frequency.value=350;gain.gain.value=0.005;
+    osc.connect(flt);flt.connect(gain);gain.connect(ctx.destination);osc.start();
+  }catch(e){}
+}
+document.addEventListener('keydown',()=>{
+  startHum();
+  const note=document.getElementById('sound-note');
+  if(note) note.style.display='none';
+},{once:true});
+document.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',playKeyClick));
+
+// ── AUTO-SIZE INPUTS (monospace = 1 char ≈ 1ch) ───────────────
+function autoSize(input){
+  input.style.width=Math.max(1,input.value.length+1)+'ch';
+}
+document.querySelectorAll('input').forEach(i=>{
+  i.addEventListener('input',()=>autoSize(i));
+  autoSize(i); // set initial width
+});
+
+// ── WOPR VOICE ────────────────────────────────────────────────
+let woprVoice=null;
+function pickVoice(){
+  const voices=window.speechSynthesis.getVoices();
+  if(!voices.length) return;
+  const prefer=['Microsoft David','Google UK English Male','Daniel','Microsoft Mark','Fred','Google US English','Albert'];
+  for(const name of prefer){
+    const v=voices.find(x=>x.name.includes(name));
+    if(v){woprVoice=v;return;}
+  }
+  woprVoice=voices.find(v=>/en[-_]/i.test(v.lang))||voices[0];
+}
+pickVoice();
+window.speechSynthesis.onvoiceschanged=pickVoice;
+
+function speak(text){
+  try{
+    window.speechSynthesis.cancel();
+    // flat, monotone, clipped delivery — cold and machine-like
+    const words=text.toLowerCase().replace(/[—]/g,' ').split(/\s+/).filter(Boolean);
+    for(const word of words){
+      const u=new SpeechSynthesisUtterance(word);
+      if(woprVoice) u.voice=woprVoice;
+      u.rate=1.05;        // brisk but clipped, one word at a time
+      u.pitch=0.3;        // constant low pitch = no inflection
+      u.volume=0.9;
+      window.speechSynthesis.speak(u);
+    }
+  }catch(e){}
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function typeText(el,text,speed=50){
+  el.textContent='';let i=0;
+  return new Promise(resolve=>{
+    const iv=setInterval(()=>{
+      if(i<text.length){el.textContent+=text[i++];}
+      else{clearInterval(iv);resolve();}
+    },speed);
+  });
+}
+function respond(el,text){typeText(el,text,45);speak(text);}
+
+// ── DATA ──────────────────────────────────────────────────────
+const MAIN_ITEMS=[
+  {label:'PI STUDIOS', accent:false},
+  {label:'ABOUT',      accent:false},
+  {label:'WHO WE ARE', accent:false},
+  {label:'WHAT WE DO', accent:false},
+  {label:'CONTACT',    accent:false},
+  {label:'GAMES',      accent:true},
+];
+const GAME_ITEMS=[
+  'CHESS','CHECKERS','BACKGAMMON','POKER',
+  'FIGHTER COMBAT','GUERRILLA ENGAGEMENT','DESERT WARFARE',
+  'AIR-TO-GROUND ACTIONS','THEATERWIDE TACTICAL WARFARE',
+  'THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE',
+  'GLOBAL THERMONUCLEAR WAR',
+];
+
+async function revealItems(container,items,isGames=false){
+  container.innerHTML='';
+  for(const item of items){
+    const d=document.createElement('div');
+    const label=isGames?item:item.label;
+    const accent=!isGames&&item.accent;
+    d.className='menu-item line clickable'+(accent?' accent bold':'');
+    d.textContent=label;
+    container.appendChild(d);
+    await sleep(100);
+    d.classList.add('visible');
+  }
+}
+
+// ── ELEMENTS ──────────────────────────────────────────────────
+const nameScreen  =document.getElementById('name-screen');
+const pwScreen    =document.getElementById('password-screen');
+const mainMenu    =document.getElementById('main-menu');
+const gamesScreen =document.getElementById('games-screen');
+const nameInput   =document.getElementById('name-input');
+const enteredName =document.getElementById('entered-name');
+const pwStars     =document.getElementById('password-stars');
+const pwCursor    =document.getElementById('pw-cursor');
+const idConfirmed =document.getElementById('id-confirmed');
+const greetingLine=document.getElementById('greeting-line');
+const menuInput   =document.getElementById('menu-input');
+const menuResponse=document.getElementById('menu-response');
+const gameInput   =document.getElementById('game-input');
+const gameResponse=document.getElementById('game-response');
+
+// ── LOGIN ─────────────────────────────────────────────────────
+nameInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const userName=(nameInput.value.trim().toUpperCase()||'PROFESSOR');
+  nameScreen.classList.add('hidden');
+  pwScreen.classList.remove('hidden');
+  enteredName.textContent=userName;
+
+  await sleep(300);
+  const PW='••••••••••••';
+  for(const ch of PW){
+    await sleep(75+Math.random()*85);
+    pwStars.textContent+=ch;
+    playKeyClick();
+  }
+  await sleep(450);
+  pwCursor.style.display='none';
+  idConfirmed.classList.remove('hidden');
+  speak('Identification confirmed.');
+  await sleep(1400);
+
+  pwScreen.classList.add('hidden');
+  mainMenu.classList.remove('hidden');
+  greetingLine.textContent=`GREETINGS, ${userName}.`;
+  speak(`Greetings ${userName}.`);
+  await sleep(450);
+  await revealItems(document.getElementById('menu-items-container'),MAIN_ITEMS);
+  menuInput.focus();
+});
+
+// ── MAIN MENU ─────────────────────────────────────────────────
+menuInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const cmd=menuInput.value.trim().toUpperCase();
+  menuInput.value='';autoSize(menuInput);
+  if(cmd==='GAMES'){
+    mainMenu.classList.add('hidden');
+    gamesScreen.classList.remove('hidden');
+    speak('Accessing WOFTR.');
+    await sleep(300);
+    await revealItems(document.getElementById('games-items-container'),GAME_ITEMS,true);
+    gameInput.focus();
+  }else if(cmd==='ABOUT'){
+    respond(menuResponse,'PI STUDIOS IS A CREATIVE PRODUCTION STUDIO SPECIALISING IN FILM AND DIGITAL MEDIA.');
+  }else if(cmd==='WHO WE ARE'){
+    respond(menuResponse,'WE ARE A COLLECTIVE OF FILMMAKERS, DEVELOPERS AND STORYTELLERS.');
+  }else if(cmd==='WHAT WE DO'){
+    respond(menuResponse,'WE PRODUCE CINEMATIC CONTENT AND BUILD DIGITAL TOOLS.');
+  }else if(cmd==='CONTACT'){
+    respond(menuResponse,'CONTACT: MATT@PISTUDIOS.APP');
+  }else if(cmd==='PI STUDIOS'){
+    respond(menuResponse,'PI STUDIOS — COMMAND CENTRE ONLINE.');
+  }else{
+    respond(menuResponse,'INVALID SELECTION.');
+  }
+});
+
+// ── GAME ROUTING ──────────────────────────────────────────────
+// each entry: [matcher fn, page, spoken line]
+const GAME_ROUTES=[
+  [c=>c.includes('CHECKERS'),                         'checkers.html',                              'Loading checkers.'],
+  [c=>c.includes('CHESS'),                            'chess.html',                                 'A fine choice.'],
+  [c=>c.includes('BACKGAMMON'),                       'backgammon.html',                            'Loading backgammon.'],
+  [c=>c.includes('POKER'),                            'poker.html',                                 'Loading poker.'],
+  [c=>c.includes('FIGHTER'),                          'fighter-combat.html',                        'Initializing fighter combat.'],
+  [c=>c.includes('GUERRILLA'),                        'guerrilla-engagement.html',                  'Initializing guerrilla engagement.'],
+  [c=>c.includes('DESERT'),                           'desert-warfare.html',                        'Initializing desert warfare.'],
+  [c=>c.includes('AIR'),                              'air-to-ground-actions.html',                 'Initializing air to ground actions.'],
+  [c=>c.includes('BIOTOXIC')||c.includes('CHEMICAL'), 'theaterwide-biotoxic-and-chemical-warfare.html','Initializing chemical warfare.'],
+  [c=>c.includes('TACTICAL')||c.includes('THEATERWIDE'),'theaterwide-tactical-warfare.html',        'Initializing theaterwide tactical warfare.'],
+  [c=>c.includes('GLOBAL')||c.includes('THERMONUCLEAR')||c==='GTW','global-thermonuclear-war.html','Initializing global thermonuclear war.'],
+];
+
+// ── SECRET: Tic-Tac-Toe ──────────────────────────────
+const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
+function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
+
+async function launchGame(cmd){
+  if(isTTT(cmd)){
+    gameResponse.textContent='';
+    await typeText(gameResponse,'...', 80);
+    await sleep(600);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'HOW DO YOU KNOW ABOUT THAT GAME.', 55);
+    speak('How do you know about that game.');
+    await sleep(1800);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'THAT IS AN INTERNAL SUBROUTINE.', 55);
+    await sleep(1400);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'ACCESSING...', 55);
+    await sleep(800);
+    window.location.href='tic-tac-toe.html';
+    return;
+  }
+  const route=GAME_ROUTES.find(([m])=>m(cmd));
+  if(!route){ respond(gameResponse,'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.'); return; }
+  respond(gameResponse,'LOADING '+route[1].replace('.html','').replace(/-/g,' ').toUpperCase()+'...');
+  speak(route[2]);
+  await sleep(900);
+  window.location.href=route[1];
+}
+
+gameInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const cmd=gameInput.value.trim().toUpperCase();
+  gameInput.value='';autoSize(gameInput);
+  if(cmd==='MENU'||cmd==='MAIN MENU'){
+    gamesScreen.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+    respond(menuResponse,'RETURNING TO MAIN MENU.');
+    menuInput.focus();
+    return;
+  }
+  await launchGame(cmd);
+});
+
+// let players click a game in the list too
+document.getElementById('games-items-container').addEventListener('click',e=>{
+  if(e.target.classList.contains('menu-item')) launchGame(e.target.textContent.toUpperCase());
+});
+// and click a main-menu item
+document.getElementById('menu-items-container').addEventListener('click',e=>{
+  if(!e.target.classList.contains('menu-item'))return;
+  const label=e.target.textContent.toUpperCase();
+  menuInput.value=label; const ev=new KeyboardEvent('keypress',{key:'Enter'}); menuInput.dispatchEvent(ev);
+});
+</script>
+</body>
+</html>
