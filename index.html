@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WOFTR</title>
+<title>WOFTR — WAR OPERATION FULFILLMENT TERMINAL RESPONSE</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
@@ -196,8 +196,8 @@ input[type="text"] {
 
   <!-- GAMES SCREEN -->
   <div id="games-screen" class="hidden">
-    <div class="line muted">ACCESSING WOFTR...</div>
-    <div class="line bold" style="margin-top:0.4em;">SHALL WE PLAY A GAME?</div>
+    <div class="line muted">ACCESSING W.O.F.T.R....</div>
+    <div class="line muted">WAR OPERATION FULFILLMENT TERMINAL RESPONSE</div>
     <hr class="divider">
     <div id="games-items-container"></div>
     <div class="input-row">
@@ -385,7 +385,7 @@ menuInput.addEventListener('keypress',async e=>{
   if(cmd==='GAMES'){
     mainMenu.classList.add('hidden');
     gamesScreen.classList.remove('hidden');
-    speak('Accessing WOFTR.');
+    speak('Accessing W.O.F.T.R.');
     await sleep(300);
     await revealItems(document.getElementById('games-items-container'),GAME_ITEMS,true);
     gameInput.focus();
