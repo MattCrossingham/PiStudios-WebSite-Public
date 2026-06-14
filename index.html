@@ -1,332 +1,431 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WOFTR</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOFTR</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-        body {
-            background-color: #000000;
-            color: #00FFFF;
-            font-family: 'VT323', 'Courier New', monospace;
-            font-size: 20px;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.3;
-            text-transform: uppercase;
-            text-shadow:
-                0 0 2px #00FFFF,
-                0 0 4px #00FFFF,
-                0 0 8px #00FFFF,
-                0 0 12px #0088CC;
-        }
+:root {
+  --cyan: #00FFFF;
+  --cyan-dim: rgba(0,255,255,0.4);
+  --bg: #000;
+}
 
-        .console {
-            max-width: 820px;
-            margin: 40px auto;
-            padding: 20px;
-        }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .line {
-            margin-bottom: 4px;
-        }
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--cyan);
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: clamp(20px, 2.2vw, 26px);
+  line-height: 1.55;
+  text-transform: uppercase;
+  overflow-x: hidden;
+}
 
-        .input-wrapper {
-            display: flex;
-            align-items: center;
-            margin-top: 8px;
-        }
+body { text-shadow: 0 0 6px var(--cyan), 0 0 14px var(--cyan-dim); }
 
-        .prompt {
-            color: #00FFFF;
-            margin-right: 0;
-        }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 3px,
+    rgba(0,255,255,0.03) 3px, rgba(0,255,255,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9997;
+}
 
-        .input-container {
-            display: flex;
-            align-items: center;
-        }
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.72) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
 
-        input {
-            background: transparent;
-            border: none;
-            color: #00FFFF;
-            font-family: 'VT323', monospace;
-            font-size: 20px;
-            outline: none;
-            width: auto;
-            min-width: 10px;
-            caret-color: transparent;
-        }
+.console {
+  width: min(780px, 92vw);
+  margin: 0 auto;
+  padding: clamp(28px, 7vh, 80px) 0 40px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
-        .cursor {
-            display: inline-block;
-            width: 14px;
-            height: 22px;
-            background: #00FFFF;
-            vertical-align: bottom;
-            animation: cursor-blink 1.3s step-end infinite;
-            box-shadow: 0 0 6px #00FFFF;
-            margin-left: 2px;
-        }
+.line { margin-bottom: 2px; letter-spacing: 0.03em; }
+.line.muted { color: var(--cyan-dim); text-shadow: none; }
+.line.bold {
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px var(--cyan), 0 0 22px var(--cyan-dim), 0 0 40px rgba(0,255,255,0.1);
+}
+.spacer { height: 1.2em; }
 
-        .hidden {
-            display: none;
-        }
+hr.divider {
+  border: none;
+  border-top: 1px solid rgba(0,255,255,0.25);
+  margin: 1em 0;
+}
 
-        .hint {
-            font-size: 16px;
-            opacity: 0.6;
-            margin-top: 30px;
-        }
+.input-row { display: flex; align-items: center; gap: 8px; margin-top: 1.4em; }
+.prompt { flex-shrink: 0; }
+.input-wrap { position: relative; display: flex; align-items: center; }
 
-        @keyframes cursor-blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
+input[type="text"] {
+  background: transparent;
+  border: none;
+  color: var(--cyan);
+  font-family: 'VT323', monospace;
+  font-size: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  outline: none;
+  width: 1ch;
+  min-width: 1ch;
+  caret-color: transparent;
+  text-shadow: 0 0 6px var(--cyan), 0 0 14px var(--cyan-dim);
+}
 
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: repeating-linear-gradient(
-                transparent,
-                transparent 3px,
-                rgba(0, 255, 255, 0.05) 3px,
-                rgba(0, 255, 255, 0.05) 6px
-            );
-            pointer-events: none;
-            z-index: 9999;
-        }
-    </style>
+.cursor {
+  display: inline-block;
+  width: 13px;
+  height: 1em;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan), 0 0 16px var(--cyan-dim);
+  vertical-align: middle;
+  margin-left: 2px;
+  animation: blink 1.1s step-end infinite;
+}
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+.menu-item {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  padding: 1px 0;
+  letter-spacing: 0.05em;
+}
+.menu-item.visible { opacity: 1; }
+.menu-item.clickable { cursor: pointer; }
+.menu-item.clickable:hover { color: #fff; text-shadow: 0 0 8px #fff, 0 0 20px var(--cyan); }
+.menu-item.accent { text-shadow: 0 0 10px var(--cyan), 0 0 24px var(--cyan-dim); letter-spacing: 0.1em; }
+
+#menu-response, #game-response {
+  min-height: 2em;
+  margin-top: 0.8em;
+  color: var(--cyan-dim);
+  font-size: 0.9em;
+  text-shadow: none;
+}
+
+.hint {
+  font-size: 0.75em;
+  color: rgba(0,255,255,0.3);
+  margin-top: 2em;
+  text-shadow: none;
+  letter-spacing: 0.06em;
+}
+
+.hidden { display: none !important; }
+
+/* sound prompt */
+#sound-note {
+  position: fixed;
+  bottom: 14px; right: 16px;
+  font-size: 0.7em;
+  color: rgba(0,255,255,0.35);
+  text-shadow: none;
+  z-index: 9999;
+  letter-spacing: 0.05em;
+}
+</style>
 </head>
 <body>
-    <div class="console">
+<div class="console">
 
-        <!-- Name Entry -->
-        <div id="name-screen">
-            <div class="line">CONNECTING...</div>
-            <div class="line">CONNECTION ESTABLISHED</div>
-            <div class="line" style="margin-top:20px;">GREETINGS.</div>
-            <div class="line">PLEASE ENTER YOUR NAME.</div>
-            
-            <div class="input-wrapper">
-                <span class="prompt">></span>
-                <div class="input-container">
-                    <input type="text" id="name-input" autofocus>
-                    <span class="cursor">_</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Menu -->
-        <div id="main-menu" class="hidden">
-            <div class="line" id="greeting-line"></div>
-            <div class="line" style="margin-top:16px;">PI STUDIOS COMMAND CENTRE</div>
-            <div class="line" style="margin-top:20px;">PI STUDIOS</div>
-            <div class="line">ABOUT</div>
-            <div class="line">WHO WE ARE</div>
-            <div class="line">WHAT WE DO</div>
-            <div class="line">CONTACT</div>
-            <div class="line"><strong>GAMES</strong></div>
-
-            <div class="input-wrapper" style="margin-top:24px;">
-                <span class="prompt">></span>
-                <div class="input-container">
-                    <input type="text" id="menu-input">
-                    <span class="cursor">_</span>
-                </div>
-            </div>
-
-            <div id="menu-response" style="margin-top:20px; min-height:60px;"></div>
-        </div>
-
-        <!-- WOFTR Games -->
-        <div id="games-screen" class="hidden">
-            <div class="line">ACCESSING WOFTR...</div>
-            <div class="line">SHALL WE PLAY A GAME?</div>
-
-            <div style="margin-top:20px;">
-                <div class="line">LIST OF AVAILABLE GAMES:</div>
-                <div class="line" style="margin-top:8px;">CHESS</div>
-                <div class="line">CHECKERS</div>
-                <div class="line">BACKGAMMON</div>
-                <div class="line">POKER</div>
-                <div class="line">FIGHTER COMBAT</div>
-                <div class="line">GUERRILLA ENGAGEMENT</div>
-                <div class="line">DESERT WARFARE</div>
-                <div class="line">AIR-TO-GROUND ACTIONS</div>
-                <div class="line">THEATERWIDE TACTICAL WARFARE</div>
-                <div class="line">THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE</div>
-                <div class="line"><strong>GLOBAL THERMONUCLEAR WAR</strong></div>
-            </div>
-
-            <div class="input-wrapper" style="margin-top:24px;">
-                <span class="prompt">></span>
-                <div class="input-container">
-                    <input type="text" id="game-input">
-                    <span class="cursor">_</span>
-                </div>
-            </div>
-
-            <div id="game-response" style="margin-top:20px; min-height:60px;"></div>
-
-            <div class="hint">TYPE MENU OR MAIN MENU TO RETURN TO MAIN MENU</div>
-        </div>
-
+  <!-- NAME ENTRY -->
+  <div id="name-screen">
+    <div class="line muted">CONNECTING...</div>
+    <div class="line muted">CONNECTION ESTABLISHED</div>
+    <div class="spacer"></div>
+    <div class="line bold">GREETINGS.</div>
+    <div class="line">PLEASE ENTER YOUR NAME.</div>
+    <div class="input-row">
+      <span class="prompt">&gt;</span>
+      <div class="input-wrap">
+        <input type="text" id="name-input" autofocus autocomplete="off" spellcheck="false">
+        <span class="cursor" id="name-cursor"></span>
+      </div>
     </div>
+  </div>
 
-    <script>
-        function playKeyClick() {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            const filter = audioCtx.createBiquadFilter();
+  <!-- PASSWORD SCREEN -->
+  <div id="password-screen" class="hidden">
+    <div class="line muted">CONNECTING...</div>
+    <div class="line muted">CONNECTION ESTABLISHED</div>
+    <div class="spacer"></div>
+    <div class="line bold">GREETINGS.</div>
+    <div class="line">PLEASE ENTER YOUR NAME.</div>
+    <div class="line" style="margin-top:0.3em">&gt;&nbsp;<span id="entered-name"></span></div>
+    <div class="line" style="margin-top:0.2em">
+      PASSWORD:&nbsp;<span id="password-stars"></span><span class="cursor" id="pw-cursor"></span>
+    </div>
+    <div class="line bold hidden" id="id-confirmed" style="margin-top:0.9em;">IDENTIFICATION CONFIRMED.</div>
+  </div>
 
-            osc.type = 'sawtooth';
-            osc.frequency.value = 160 + Math.random() * 140;
-            filter.type = 'lowpass';
-            filter.frequency.value = 1100;
-            gain.gain.value = 0.1;
+  <!-- MAIN MENU -->
+  <div id="main-menu" class="hidden">
+    <div class="line bold" id="greeting-line"></div>
+    <div class="line muted" style="margin-top:0.15em;">PI STUDIOS COMMAND CENTRE</div>
+    <hr class="divider">
+    <div id="menu-items-container"></div>
+    <div class="input-row">
+      <span class="prompt">&gt;</span>
+      <div class="input-wrap">
+        <input type="text" id="menu-input" autocomplete="off" spellcheck="false">
+        <span class="cursor"></span>
+      </div>
+    </div>
+    <div id="menu-response"></div>
+  </div>
 
-            const duration = 0.035 + Math.random() * 0.025;
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-            gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        }
+  <!-- GAMES SCREEN -->
+  <div id="games-screen" class="hidden">
+    <div class="line muted">ACCESSING WOFTR...</div>
+    <div class="line bold" style="margin-top:0.4em;">SHALL WE PLAY A GAME?</div>
+    <hr class="divider">
+    <div id="games-items-container"></div>
+    <div class="input-row">
+      <span class="prompt">&gt;</span>
+      <div class="input-wrap">
+        <input type="text" id="game-input" autocomplete="off" spellcheck="false">
+        <span class="cursor"></span>
+      </div>
+    </div>
+    <div id="game-response"></div>
+    <div class="hint">TYPE MENU TO RETURN TO MAIN MENU</div>
+  </div>
 
-        function startModemHum() {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            const filter = audioCtx.createBiquadFilter();
+</div>
+<div id="sound-note">PRESS ANY KEY TO ENABLE SOUND</div>
 
-            osc.type = 'sine';
-            osc.frequency.value = 78;
-            filter.type = 'lowpass';
-            filter.frequency.value = 350;
-            gain.gain.value = 0.006;
+<script>
+// ── AUDIO ─────────────────────────────────────────────────────
+let audioCtx;
+function getCtx(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+function playKeyClick(){
+  try{
+    const ctx=getCtx(),osc=ctx.createOscillator(),gain=ctx.createGain(),flt=ctx.createBiquadFilter();
+    osc.type='sawtooth'; osc.frequency.value=160+Math.random()*140;
+    flt.type='lowpass'; flt.frequency.value=1100; gain.gain.value=0.08;
+    const d=0.03+Math.random()*0.02;
+    osc.connect(flt);flt.connect(gain);gain.connect(ctx.destination);
+    osc.start();osc.stop(ctx.currentTime+d);
+    gain.gain.linearRampToValueAtTime(0.001,ctx.currentTime+d);
+  }catch(e){}
+}
+function startHum(){
+  try{
+    const ctx=getCtx(),osc=ctx.createOscillator(),gain=ctx.createGain(),flt=ctx.createBiquadFilter();
+    osc.type='sine';osc.frequency.value=78;
+    flt.type='lowpass';flt.frequency.value=350;gain.gain.value=0.005;
+    osc.connect(flt);flt.connect(gain);gain.connect(ctx.destination);osc.start();
+  }catch(e){}
+}
+document.addEventListener('keydown',()=>{
+  startHum();
+  const note=document.getElementById('sound-note');
+  if(note) note.style.display='none';
+},{once:true});
+document.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',playKeyClick));
 
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-        }
+// ── AUTO-SIZE INPUTS (monospace = 1 char ≈ 1ch) ───────────────
+function autoSize(input){
+  input.style.width=Math.max(1,input.value.length+1)+'ch';
+}
+document.querySelectorAll('input').forEach(i=>{
+  i.addEventListener('input',()=>autoSize(i));
+  autoSize(i); // set initial width
+});
 
-        function attachSounds() {
-            document.querySelectorAll('input').forEach(input => {
-                input.addEventListener('keydown', () => playKeyClick());
-            });
-        }
+// ── WOPR VOICE ────────────────────────────────────────────────
+let woprVoice=null;
+function pickVoice(){
+  const voices=window.speechSynthesis.getVoices();
+  if(!voices.length) return;
+  const prefer=['Microsoft David','Google UK English Male','Daniel','Microsoft Mark','Fred','Google US English','Albert'];
+  for(const name of prefer){
+    const v=voices.find(x=>x.name.includes(name));
+    if(v){woprVoice=v;return;}
+  }
+  woprVoice=voices.find(v=>/en[-_]/i.test(v.lang))||voices[0];
+}
+pickVoice();
+window.speechSynthesis.onvoiceschanged=pickVoice;
 
-        window.addEventListener('load', () => {
-            attachSounds();
-            startModemHum();
-        });
+function speak(text){
+  try{
+    window.speechSynthesis.cancel();
+    // flat, monotone, clipped delivery — cold and machine-like
+    const words=text.toLowerCase().replace(/[—]/g,' ').split(/\s+/).filter(Boolean);
+    for(const word of words){
+      const u=new SpeechSynthesisUtterance(word);
+      if(woprVoice) u.voice=woprVoice;
+      u.rate=1.05;        // brisk but clipped, one word at a time
+      u.pitch=0.3;        // constant low pitch = no inflection
+      u.volume=0.9;
+      window.speechSynthesis.speak(u);
+    }
+  }catch(e){}
+}
 
-        const nameInput = document.getElementById('name-input');
-        const mainMenu = document.getElementById('main-menu');
-        const gamesScreen = document.getElementById('games-screen');
-        const greetingLine = document.getElementById('greeting-line');
-        const menuInput = document.getElementById('menu-input');
-        const menuResponse = document.getElementById('menu-response');
-        const gameInput = document.getElementById('game-input');
-        const gameResponse = document.getElementById('game-response');
+// ── UTILS ─────────────────────────────────────────────────────
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function typeText(el,text,speed=50){
+  el.textContent='';let i=0;
+  return new Promise(resolve=>{
+    const iv=setInterval(()=>{
+      if(i<text.length){el.textContent+=text[i++];}
+      else{clearInterval(iv);resolve();}
+    },speed);
+  });
+}
+function respond(el,text){typeText(el,text,45);speak(text);}
 
-        let userName = "";
+// ── DATA ──────────────────────────────────────────────────────
+const MAIN_ITEMS=[
+  {label:'PI STUDIOS', accent:false},
+  {label:'ABOUT',      accent:false},
+  {label:'WHO WE ARE', accent:false},
+  {label:'WHAT WE DO', accent:false},
+  {label:'CONTACT',    accent:false},
+  {label:'GAMES',      accent:true},
+];
+const GAME_ITEMS=[
+  'CHESS','CHECKERS','BACKGAMMON','POKER',
+  'FIGHTER COMBAT','GUERRILLA ENGAGEMENT','DESERT WARFARE',
+  'AIR-TO-GROUND ACTIONS','THEATERWIDE TACTICAL WARFARE',
+  'THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE',
+  'GLOBAL THERMONUCLEAR WAR',
+];
 
-        function speak(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.82;
-            utterance.pitch = 0.28;
-            utterance.volume = 0.90;
-            window.speechSynthesis.speak(utterance);
-        }
+async function revealItems(container,items,isGames=false){
+  container.innerHTML='';
+  for(const item of items){
+    const d=document.createElement('div');
+    const label=isGames?item:item.label;
+    const accent=!isGames&&item.accent;
+    d.className='menu-item line clickable'+(accent?' accent bold':'');
+    d.textContent=label;
+    container.appendChild(d);
+    await sleep(100);
+    d.classList.add('visible');
+  }
+}
 
-        function typeText(element, text, speed = 65) {
-            element.innerHTML = "";
-            let i = 0;
-            const interval = setInterval(() => {
-                if (i < text.length) {
-                    element.innerHTML += text.charAt(i);
-                    i++;
-                } else {
-                    clearInterval(interval);
-                }
-            }, speed);
-        }
+// ── ELEMENTS ──────────────────────────────────────────────────
+const nameScreen  =document.getElementById('name-screen');
+const pwScreen    =document.getElementById('password-screen');
+const mainMenu    =document.getElementById('main-menu');
+const gamesScreen =document.getElementById('games-screen');
+const nameInput   =document.getElementById('name-input');
+const enteredName =document.getElementById('entered-name');
+const pwStars     =document.getElementById('password-stars');
+const pwCursor    =document.getElementById('pw-cursor');
+const idConfirmed =document.getElementById('id-confirmed');
+const greetingLine=document.getElementById('greeting-line');
+const menuInput   =document.getElementById('menu-input');
+const menuResponse=document.getElementById('menu-response');
+const gameInput   =document.getElementById('game-input');
+const gameResponse=document.getElementById('game-response');
 
-        function respond(element, text) {
-            typeText(element, text, 60);
-            speak(text);
-        }
+// ── LOGIN ─────────────────────────────────────────────────────
+nameInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const userName=(nameInput.value.trim().toUpperCase()||'PROFESSOR');
+  nameScreen.classList.add('hidden');
+  pwScreen.classList.remove('hidden');
+  enteredName.textContent=userName;
 
-        nameInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                userName = nameInput.value.trim() || "Professor";
-                document.getElementById('name-screen').classList.add('hidden');
-                mainMenu.classList.remove('hidden');
-                greetingLine.innerHTML = `GREETINGS, ${userName.toUpperCase()}.`;
-                speak(`Greetings, ${userName}.`);
-            }
-        });
+  await sleep(300);
+  const PW='••••••••••••';
+  for(const ch of PW){
+    await sleep(75+Math.random()*85);
+    pwStars.textContent+=ch;
+    playKeyClick();
+  }
+  await sleep(450);
+  pwCursor.style.display='none';
+  idConfirmed.classList.remove('hidden');
+  speak('Identification confirmed.');
+  await sleep(1400);
 
-        menuInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const cmd = menuInput.value.trim().toUpperCase();
-                menuInput.value = '';
+  pwScreen.classList.add('hidden');
+  mainMenu.classList.remove('hidden');
+  greetingLine.textContent=`GREETINGS, ${userName}.`;
+  speak(`Greetings ${userName}.`);
+  await sleep(450);
+  await revealItems(document.getElementById('menu-items-container'),MAIN_ITEMS);
+  menuInput.focus();
+});
 
-                if (cmd === "GAMES") {
-                    mainMenu.classList.add('hidden');
-                    gamesScreen.classList.remove('hidden');
-                    respond(gameResponse, "ACCESSING WOFTR...");
-                } else if (cmd === "ABOUT") {
-                    respond(menuResponse, "PI STUDIOS IS A CREATIVE PRODUCTION STUDIO SPECIALISING IN FILM AND DIGITAL MEDIA.");
-                } else if (cmd === "WHO WE ARE") {
-                    respond(menuResponse, "WE ARE A COLLECTIVE OF FILMMAKERS, DEVELOPERS AND STORYTELLERS.");
-                } else if (cmd === "WHAT WE DO") {
-                    respond(menuResponse, "WE PRODUCE CINEMATIC CONTENT AND BUILD DIGITAL TOOLS.");
-                } else if (cmd === "CONTACT") {
-                    respond(menuResponse, "CONTACT: MATT@PISTUDIOS.APP");
-                } else if (cmd === "PI STUDIOS") {
-                    respond(menuResponse, "PI STUDIOS — COMMAND CENTRE ONLINE.");
-                } else if (cmd === "MENU" || cmd === "MAIN MENU") {
-                    respond(menuResponse, "ALREADY AT MAIN MENU.");
-                } else {
-                    respond(menuResponse, "INVALID SELECTION.");
-                }
-            }
-        });
+// ── MAIN MENU ─────────────────────────────────────────────────
+menuInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const cmd=menuInput.value.trim().toUpperCase();
+  menuInput.value='';autoSize(menuInput);
+  if(cmd==='GAMES'){
+    mainMenu.classList.add('hidden');
+    gamesScreen.classList.remove('hidden');
+    speak('Accessing WOFTR.');
+    await sleep(300);
+    await revealItems(document.getElementById('games-items-container'),GAME_ITEMS,true);
+    gameInput.focus();
+  }else if(cmd==='ABOUT'){
+    respond(menuResponse,'PI STUDIOS IS A CREATIVE PRODUCTION STUDIO SPECIALISING IN FILM AND DIGITAL MEDIA.');
+  }else if(cmd==='WHO WE ARE'){
+    respond(menuResponse,'WE ARE A COLLECTIVE OF FILMMAKERS, DEVELOPERS AND STORYTELLERS.');
+  }else if(cmd==='WHAT WE DO'){
+    respond(menuResponse,'WE PRODUCE CINEMATIC CONTENT AND BUILD DIGITAL TOOLS.');
+  }else if(cmd==='CONTACT'){
+    respond(menuResponse,'CONTACT: MATT@PISTUDIOS.APP');
+  }else if(cmd==='PI STUDIOS'){
+    respond(menuResponse,'PI STUDIOS — COMMAND CENTRE ONLINE.');
+  }else{
+    respond(menuResponse,'INVALID SELECTION.');
+  }
+});
 
-        gameInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const cmd = gameInput.value.trim().toUpperCase();
-                gameInput.value = '';
-
-                if (cmd === "MENU" || cmd === "MAIN MENU") {
-                    gamesScreen.classList.add('hidden');
-                    mainMenu.classList.remove('hidden');
-                    respond(menuResponse, "RETURNING TO MAIN MENU.");
-                } else if (cmd === "GAMES MENU") {
-                    respond(gameResponse, "RETURNING TO GAMES MENU.");
-                } else if (cmd.includes("CHECKERS")) {
-                    window.location.href = "checkers.html";
-                } else if (cmd.includes("GLOBAL") || cmd.includes("THERMONUCLEAR")) {
-                    respond(gameResponse, "GLOBAL THERMONUCLEAR WAR SELECTED.");
-                } else if (cmd.includes("CHESS")) {
-                    respond(gameResponse, "A FINE GAME. WOULD YOU LIKE TO PLAY CHESS?");
-                } else if (cmd.includes("FIGHTER")) {
-                    respond(gameResponse, "FIGHTER COMBAT SELECTED.");
-                } else {
-                    respond(gameResponse, "A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.");
-                }
-            }
-        });
-    </script>
+// ── GAMES MENU ────────────────────────────────────────────────
+gameInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const cmd=gameInput.value.trim().toUpperCase();
+  gameInput.value='';autoSize(gameInput);
+  if(cmd==='MENU'||cmd==='MAIN MENU'){
+    gamesScreen.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+    respond(menuResponse,'RETURNING TO MAIN MENU.');
+    menuInput.focus();
+  }else if(cmd.includes('CHECKERS')){
+    respond(gameResponse,'LOADING CHECKERS...');
+    await sleep(800);window.location.href='checkers.html';
+  }else if(cmd.includes('GLOBAL')||cmd.includes('THERMONUCLEAR')||cmd==='GTW'){
+    respond(gameResponse,'LAUNCHING GLOBAL THERMONUCLEAR WAR...');
+    await sleep(800);window.location.href='global-thermonuclear-war.html';
+  }else if(cmd.includes('CHESS')){
+    respond(gameResponse,'A FINE GAME. WOULD YOU LIKE TO PLAY CHESS?');
+  }else{
+    respond(gameResponse,'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.');
+  }
+});
+</script>
 </body>
 </html>
