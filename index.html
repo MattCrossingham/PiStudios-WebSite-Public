@@ -433,9 +433,13 @@ async function launchGame(cmd){
     await typeText(gameResponse,"NO. I WANT TO PLAY GLOBAL THERMONUCLEAR WAR.",55);
     speak("No. I want to play Global Thermonuclear War.");
     await sleep(2500);
-    gameResponse.textContent="";
-    await typeText(gameResponse,"A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.",55);
-    speak("A strange game. The only winning move is not to play.");
+    const route=GAME_ROUTES.find(([m])=>m(cmd));
+    if(route){
+      respond(gameResponse,"LOADING "+route[1].replace(".html","").replace(/-/g," ").toUpperCase()+"...");
+      speak(route[2]);
+      await sleep(900);
+      window.location.href=route[1];
+    }
     return;
   }
   if(isTTT(cmd)){
