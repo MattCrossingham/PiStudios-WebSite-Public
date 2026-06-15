@@ -333,9 +333,9 @@ function speak(text){
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
     if(woprVoice) u.voice=woprVoice;
-    u.rate=0.85;
-    u.pitch=0.35;
-    u.volume=0.9;
+    u.rate=0.9;
+    u.pitch=0.65;
+    u.volume=1.0;
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
