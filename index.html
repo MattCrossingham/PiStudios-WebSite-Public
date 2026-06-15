@@ -221,36 +221,32 @@ input[type="text"] {
 
 <script src="sam.js"></script>
 <script>
+<script>
 // ── WOPR VOICE (SAM) ───────────────────────────────────────────────
 let sam = null;
 
 function initSAM() {
   try {
-    const SamConstructor = (typeof SamJs !== 'undefined') ? SamJs : (typeof SAM !== 'undefined' ? SAM : window.SamJs);
-    
+    const SamConstructor = window.SamJs || SamJs;
     if (SamConstructor) {
       sam = new SamConstructor({
-        speed: 65,
-        pitch: 55,
-        mouth: 128,
-        throat: 128
+        speed: 72,
+        pitch: 64,
+        throat: 128,
+        mouth: 128
       });
-      console.log('%c✅ [SAM] WOPR voice initialized - crunchy 80s robot', 'color:#0ff; font-weight:bold');
+      console.log('%c✅ [SAM] WOPR voice initialized - crunchy 80s robot', 'color:#0f0; font-weight:bold');
     } else {
-      console.error('❌ [SAM] Constructor not found');
+      console.error('❌ [SAM] SamJs constructor not found');
     }
   } catch(e) {
     console.error('❌ [SAM] Init failed:', e);
   }
 }
 
-window.addEventListener('load', () => {
-  setTimeout(initSAM, 300);
-});
-
-window.speak = function(text) {
+function speak(text) {
   if (!sam) {
-    console.warn('[SAM] Not ready');
+    console.warn('[SAM] Not ready - skipping voice');
     return;
   }
   try {
@@ -258,7 +254,9 @@ window.speak = function(text) {
   } catch(e) {
     console.error('[SAM] Speak error:', e);
   }
-};
+}
+
+window.addEventListener('load', () => setTimeout(initSAM, 300));
 </script>
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
