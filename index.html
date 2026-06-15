@@ -219,6 +219,7 @@ input[type="text"] {
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/sam-js@0.2.1/dist/sam.js"></script>
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
 let audioCtx;
@@ -306,43 +307,6 @@ document.querySelectorAll('input').forEach(i=>{
 });
 
 // ── WOPR VOICE ────────────────────────────────────────────────
-let woprVoice=null;
-let _speaking=false;
-function speak(text){
-  try{
-    if(!_speaking) window.speechSynthesis.cancel();
-    const clean=text.toLowerCase().replace(/[—–]/g,' ').replace(/[.,!?;:]/g,'').trim();
-    const words=clean.split(/\s+/).filter(Boolean);
-    if(!words.length) return;
-    _speaking=true;
-    let i=0;
-    function chain(){
-      if(i>=words.length){ _speaking=false; return; }
-      const idx=i; i++;
-      const u=new SpeechSynthesisUtterance(words[idx]);
-      if(woprVoice) u.voice=woprVoice;
-      u.rate=0.9;
-      u.volume=1.0;
-      u.pitch=0.6+Math.sin(idx*2.2)*0.35;
-      u.onend=chain;
-      u.onerror=chain;
-      window.speechSynthesis.speak(u);
-    }
-    chain();
-  }catch(e){ _speaking=false; }
-}
-function pickVoice(){
-  const voices=window.speechSynthesis.getVoices();
-  if(!voices.length) return;
-  const prefer=['Microsoft David','Google UK English Male','Daniel','Microsoft Mark','Fred','Google US English','Albert'];
-  for(const name of prefer){
-    const v=voices.find(x=>x.name.includes(name));
-    if(v){woprVoice=v;return;}
-  }
-  woprVoice=voices.find(v=>/en[-_]/i.test(v.lang))||voices[0];
-}
-pickVoice();
-window.speechSynthesis.onvoiceschanged=pickVoice;
 
 
 // ── UTILS ─────────────────────────────────────────────────────
