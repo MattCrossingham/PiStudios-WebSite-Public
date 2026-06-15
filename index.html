@@ -230,17 +230,6 @@ function getCtx(){
 // ── MODEM DIAL-IN SOUND ──────────────────────────────────────
 // Plays the real dial-up MP3. Returns a promise that resolves
 // when the audio finishes so the sequence can wait on it.
-function playModem(){
-  return new Promise(resolve=>{
-    try{
-      const audio=new Audio('audio/Dialling.mp3');
-      audio.volume=1.0;
-      audio.onended=()=>resolve();
-      audio.onerror=()=>resolve(); // if file missing, carry on anyway
-      audio.play().catch(()=>resolve());
-    }catch(e){ resolve(); }
-  });
-}
 
 // ── DIAL-IN SEQUENCE ───────────────────────────────────────────
 const dialLog=document.getElementById('dial-log');
@@ -265,8 +254,7 @@ async function runDialSequence(){
 
   audioUnlocked=true;
 
-  // play the real dial-up MP3 and wait for it to finish
-  await playModem();
+  // instant connection - no modem sound
 
   // MP3 done — show connection established
   connLine.innerHTML='CONNECTING... <span style="color:var(--cyan)">OK</span>';
