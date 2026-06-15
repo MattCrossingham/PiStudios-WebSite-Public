@@ -219,10 +219,9 @@ input[type="text"] {
 </div>
 
 
-
 <script src="sam.js"></script>
 <script>
-// ── WOPR / JOSHUA VOICE (SAM) ───────────────────────────────────────────────
+// ── WOPR VOICE (SAM) ───────────────────────────────────────────────
 let sam = null;
 
 function initSAM() {
@@ -230,45 +229,73 @@ function initSAM() {
     const SamConstructor = window.SamJs || window.samJs || SamJs;
     if (SamConstructor) {
       sam = new SamConstructor({
-        speed: 85,
-        pitch: 48,
-        throat: 110,
-        mouth: 105
+        speed: 72,
+        pitch: 64,
+        throat: 128,
+        mouth: 128
       });
-      console.log("%c✅ [SAM] Joshua/WOPR voice online - crunchy 80s", "color:#0f0; font-weight:bold");
+      console.log('%c✅ [SAM] WOPR voice initialized - crunchy 80s robot', 'color:#0f0; font-weight:bold');
     } else {
-      console.error("❌ [SAM] Constructor not found");
+      console.error('❌ [SAM] SamJs constructor not found');
     }
   } catch(e) {
-    console.error("❌ [SAM] Init failed:", e);
+    console.error('❌ [SAM] Init failed:', e);
   }
 }
 
 function speak(text) {
   if (!sam) {
-    console.warn("[SAM] Not ready - skipping:", text);
+    console.warn('[SAM] Not ready - skipping voice');
     return;
   }
   try {
-    const words = (text || "").toLowerCase().split(/\s+/);
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < words.length) {
-        sam.speak(words[i] + (Math.random() > 0.65 ? "." : ""));
-        i++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 260);
+    sam.speak((text || '' ).toLowerCase());
   } catch(e) {
-    console.error("[SAM] Speak error:", e);
+    console.error('[SAM] Speak error:', e);
   }
 }
 
-window.addEventListener("load", () => setTimeout(initSAM, 400));
+window.addEventListener('load', () => setTimeout(initSAM, 400));
 </script>
+<script>
+<script src="sam.js"></script>
+<script>
+// ── WOPR VOICE (SAM) ───────────────────────────────────────────────
+let sam = null;
 
-<!-- AUDIO & KEY CLICKS -->
+function initSAM() {
+  try {
+    const SamConstructor = window.SamJs || window.samJs || SamJs;
+    if (SamConstructor) {
+      sam = new SamConstructor({
+        speed: 72,
+        pitch: 64,
+        throat: 128,
+        mouth: 128
+      });
+      console.log('%c✅ [SAM] WOPR voice initialized - crunchy 80s robot', 'color:#0f0; font-weight:bold');
+    } else {
+      console.error('❌ [SAM] SamJs constructor not found');
+    }
+  } catch(e) {
+    console.error('❌ [SAM] Init failed:', e);
+  }
+}
+
+function speak(text) {
+  if (!sam) {
+    console.warn('[SAM] Not ready - skipping voice');
+    return;
+  }
+  try {
+    sam.speak((text || '' ).toLowerCase());
+  } catch(e) {
+    console.error('[SAM] Speak error:', e);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(initSAM, 400));
+</script>
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
 let audioCtx;
@@ -277,23 +304,91 @@ function getCtx(){
   return audioCtx;
 }
 
+// ── MODEM DIAL-IN SOUND ──────────────────────────────────────
+// Plays the real dial-up MP3. Returns a promise that resolves
+// when the audio finishes so the sequence can wait on it.
+
+// ── DIAL-IN SEQUENCE ───────────────────────────────────────────
+const dialLog=document.getElementById('dial-log');
+function addDialLine(text,cls=''){
+  const d=document.createElement('div');
+  d.className='line '+(cls||'');
+  d.textContent=text;
+  dialLog.appendChild(d);
+  return d;
+}
+
+// Browsers block AudioContext until a user gesture.
+// Strategy: show CONNECTING... dots on load (no sound).
+// The moment user presses ANY key, unlock audio and run
+// the full modem sequence. Feels natural — like pressing
+// a key to initiate the call.
+let connLine = null;
+
+async function runDialSequence(){
+  const sl=ms=>new Promise(r=>setTimeout(r,ms));
+
+  audioUnlocked=true;
+
+  // instant connection - no modem sound
+
+  // MP3 done — show connection established
+  connLine.innerHTML='CONNECTING... <span style="color:var(--cyan)">OK</span>';
+  await sl(300);
+  addDialLine('CONNECTION ESTABLISHED','ok');
+  await sl(500);
+  addDialLine('W.O.F.T.R. MAINFRAME ONLINE','ok');
+  await sl(400);
+  addDialLine('ENCRYPTION: ACTIVE','ok');
+  await sl(700);
+
+  // reveal name prompt
+  document.getElementById('name-prompt').classList.remove('hidden');
+  document.getElementById('name-input').focus();
+}
+
+// On load: show flashing dots then auto-start sequence
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    // show dots immediately — no sound yet
+    connLine = document.createElement('div');
+    connLine.className='line';
+    connLine.innerHTML='CONNECTING<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+    dialLog.appendChild(connLine);
+    setTimeout(runDialSequence, 800);
+  }, 300);
+});
+
 function playKeyClick(){
   try{
     const ctx=getCtx(),osc=ctx.createOscillator(),gain=ctx.createGain(),flt=ctx.createBiquadFilter();
-    osc.type="sawtooth"; osc.frequency.value=160+Math.random()*140;
-    flt.type="lowpass"; flt.frequency.value=1100; gain.gain.value=0.08;
+    osc.type='sawtooth'; osc.frequency.value=160+Math.random()*140;
+    flt.type='lowpass'; flt.frequency.value=1100; gain.gain.value=0.08;
     const d=0.03+Math.random()*0.02;
     osc.connect(flt);flt.connect(gain);gain.connect(ctx.destination);
     osc.start();osc.stop(ctx.currentTime+d);
     gain.gain.linearRampToValueAtTime(0.001,ctx.currentTime+d);
   }catch(e){}
 }
+// modem sound auto-starts on load — no manual unlock needed
+document.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',playKeyClick));
+
+// ── AUTO-SIZE INPUTS (monospace = 1 char ≈ 1ch) ───────────────
+function autoSize(input){
+  input.style.width=Math.max(1,input.value.length+1)+'ch';
+}
+document.querySelectorAll('input').forEach(i=>{
+  i.addEventListener('input',()=>autoSize(i));
+  autoSize(i); // set initial width
+});
+
+// ── WOPR VOICE ────────────────────────────────────────────────
+
 
 // ── UTILS ─────────────────────────────────────────────────────
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-
 function typeText(el,text,speed=50){
-  el.textContent="";let i=0;
+  el.textContent='';let i=0;
   return new Promise(resolve=>{
     const iv=setInterval(()=>{
       if(i<text.length){el.textContent+=text[i++];}
@@ -301,6 +396,191 @@ function typeText(el,text,speed=50){
     },speed);
   });
 }
-
 function respond(el,text){typeText(el,text,45);speak(text);}
+
+// ── DATA ──────────────────────────────────────────────────────
+const MAIN_ITEMS=[
+  {label:'PI STUDIOS', accent:false},
+  {label:'ABOUT',      accent:false},
+  {label:'WHO WE ARE', accent:false},
+  {label:'WHAT WE DO', accent:false},
+  {label:'CONTACT',    accent:false},
+  {label:'GAMES',      accent:true},
+];
+const GAME_ITEMS=[
+  'CHESS','CHECKERS','BACKGAMMON','POKER',
+  'FIGHTER COMBAT','GUERRILLA ENGAGEMENT','DESERT WARFARE',
+  'AIR-TO-GROUND ACTIONS','THEATERWIDE TACTICAL WARFARE',
+  'THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE',
+  'GLOBAL THERMONUCLEAR WAR',
+];
+
+async function revealItems(container,items,isGames=false){
+  container.innerHTML='';
+  for(const item of items){
+    const d=document.createElement('div');
+    const label=isGames?item:item.label;
+    const accent=!isGames&&item.accent;
+    d.className='menu-item line clickable'+(accent?' accent bold':'');
+    d.textContent=label;
+    container.appendChild(d);
+    await sleep(100);
+    d.classList.add('visible');
+  }
+}
+
+// ── ELEMENTS ──────────────────────────────────────────────────
+const nameScreen  =document.getElementById('name-screen');
+const pwScreen    =document.getElementById('password-screen');
+const mainMenu    =document.getElementById('main-menu');
+const gamesScreen =document.getElementById('games-screen');
+const nameInput   =document.getElementById('name-input');
+const enteredName =document.getElementById('entered-name');
+const pwStars     =document.getElementById('password-stars');
+const pwCursor    =document.getElementById('pw-cursor');
+const idConfirmed =document.getElementById('id-confirmed');
+const greetingLine=document.getElementById('greeting-line');
+const menuInput   =document.getElementById('menu-input');
+const menuResponse=document.getElementById('menu-response');
+const gameInput   =document.getElementById('game-input');
+const gameResponse=document.getElementById('game-response');
+
+// ── LOGIN ─────────────────────────────────────────────────────
+nameInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const userName=(nameInput.value.trim().toUpperCase()||'PROFESSOR');
+  nameScreen.classList.add('hidden');
+  pwScreen.classList.remove('hidden');
+  enteredName.textContent=userName;
+
+  await sleep(300);
+  const PW='••••••••••••';
+  for(const ch of PW){
+    await sleep(75+Math.random()*85);
+    pwStars.textContent+=ch;
+    playKeyClick();
+  }
+  await sleep(450);
+  pwCursor.style.display='none';
+  idConfirmed.classList.remove('hidden');
+  // cancel any leftover queued speech (key click sounds etc.) then wait
+  // a beat so the synth engine is fully clear before speaking the full phrase
+  await sleep(300);
+  // speak as a single utterance — not word-by-word — so it can't be cut off mid-phrase
+  try {
+    speak('Identification confirmed.');
+  } catch(e) {}
+  await sleep(1600);
+
+  pwScreen.classList.add('hidden');
+  mainMenu.classList.remove('hidden');
+  greetingLine.textContent=`GREETINGS, ${userName}.`;
+  await sleep(200);
+  try {
+    speak('Greetings ' + userName + '.');
+  } catch(e) {}
+  await sleep(450);
+  await revealItems(document.getElementById('menu-items-container'),MAIN_ITEMS);
+  menuInput.focus();
+});
+
+// ── MAIN MENU ─────────────────────────────────────────────────
+menuInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const cmd=menuInput.value.trim().toUpperCase();
+  menuInput.value='';autoSize(menuInput);
+  if(cmd==='GAMES'){
+    mainMenu.classList.add('hidden');
+    gamesScreen.classList.remove('hidden');
+    speak('Accessing WOFTR.');
+    await sleep(300);
+    await revealItems(document.getElementById('games-items-container'),GAME_ITEMS,true);
+    gameInput.focus();
+  }else if(cmd==='ABOUT'){
+    respond(menuResponse,'PI STUDIOS IS A CREATIVE PRODUCTION STUDIO SPECIALISING IN FILM AND DIGITAL MEDIA.');
+  }else if(cmd==='WHO WE ARE'){
+    respond(menuResponse,'WE ARE A COLLECTIVE OF FILMMAKERS, DEVELOPERS AND STORYTELLERS.');
+  }else if(cmd==='WHAT WE DO'){
+    respond(menuResponse,'WE PRODUCE CINEMATIC CONTENT AND BUILD DIGITAL TOOLS.');
+  }else if(cmd==='CONTACT'){
+    respond(menuResponse,'CONTACT: MATT@PISTUDIOS.APP');
+  }else if(cmd==='PI STUDIOS'){
+    respond(menuResponse,'PI STUDIOS — COMMAND CENTRE ONLINE.');
+  }else{
+    respond(menuResponse,'INVALID SELECTION.');
+  }
+});
+
+// ── GAME ROUTING ──────────────────────────────────────────────
+// each entry: [matcher fn, page, spoken line]
+const GAME_ROUTES=[
+  [c=>c.includes('CHECKERS'),                         'checkers.html',                              'Loading checkers.'],
+  [c=>c.includes('CHESS'),                            'chess.html',                                 'A fine choice.'],
+  [c=>c.includes('BACKGAMMON'),                       'backgammon.html',                            'Loading backgammon.'],
+  [c=>c.includes('POKER'),                            'poker.html',                                 'Loading poker.'],
+  [c=>c.includes('FIGHTER'),                          'fighter-combat.html',                        'Initializing fighter combat.'],
+  [c=>c.includes('GUERRILLA'),                        'guerrilla-engagement.html',                  'Initializing guerrilla engagement.'],
+  [c=>c.includes('DESERT'),                           'desert-warfare.html',                        'Initializing desert warfare.'],
+  [c=>c.includes('AIR'),                              'air-to-ground-actions.html',                 'Initializing air to ground actions.'],
+  [c=>c.includes('BIOTOXIC')||c.includes('CHEMICAL'), 'theaterwide-biotoxic-and-chemical-warfare.html','Initializing chemical warfare.'],
+  [c=>c.includes('TACTICAL')||c.includes('THEATERWIDE'),'theaterwide-tactical-warfare.html',        'Initializing theaterwide tactical warfare.'],
+  [c=>c.includes('GLOBAL')||c.includes('THERMONUCLEAR')||c==='GTW','global-thermonuclear-war.html','Initializing global thermonuclear war.'],
+];
+
+// ── SECRET: Tic-Tac-Toe ──────────────────────────────
+const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
+function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
+
+async function launchGame(cmd){
+  if(isTTT(cmd)){
+    gameResponse.textContent='';
+    await typeText(gameResponse,'...', 80);
+    await sleep(600);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'HOW DO YOU KNOW ABOUT THAT GAME.', 55);
+    speak('How do you know about that game.');
+    await sleep(1800);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'THAT IS AN INTERNAL SUBROUTINE.', 55);
+    await sleep(1400);
+    gameResponse.textContent='';
+    await typeText(gameResponse,'ACCESSING...', 55);
+    await sleep(800);
+    window.location.href='tic-tac-toe.html';
+    return;
+  }
+  const route=GAME_ROUTES.find(([m])=>m(cmd));
+  if(!route){ respond(gameResponse,'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.'); return; }
+  respond(gameResponse,'LOADING '+route[1].replace('.html','').replace(/-/g,' ').toUpperCase()+'...');
+  speak(route[2]);
+  await sleep(900);
+  window.location.href=route[1];
+}
+
+gameInput.addEventListener('keypress',async e=>{
+  if(e.key!=='Enter')return;
+  const cmd=gameInput.value.trim().toUpperCase();
+  gameInput.value='';autoSize(gameInput);
+  if(cmd==='MENU'||cmd==='MAIN MENU'){
+    gamesScreen.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+    respond(menuResponse,'RETURNING TO MAIN MENU.');
+    menuInput.focus();
+    return;
+  }
+  await launchGame(cmd);
+});
+
+// let players click a game in the list too
+document.getElementById('games-items-container').addEventListener('click',e=>{
+  if(e.target.classList.contains('menu-item')) launchGame(e.target.textContent.toUpperCase());
+});
+// and click a main-menu item
+document.getElementById('menu-items-container').addEventListener('click',e=>{
+  if(!e.target.classList.contains('menu-item'))return;
+  const label=e.target.textContent.toUpperCase();
+  menuInput.value=label; const ev=new KeyboardEvent('keypress',{key:'Enter'}); menuInput.dispatchEvent(ev);
+});
 </script>
+</body>
+</html>
