@@ -2,13 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>WOPR — GLOBAL THERMONUCLEAR WAR</title>
+<title>W.O.F.T.R. — GLOBAL THERMONUCLEAR WAR</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-:root {
-  --green: #00ff41; --green-dim: #007a20; --green-mid: #00c830;
-  --red: #ff2200; --amber: #ffaa00; --cyan: #00e5ff;
-}
+:root { --green:#00ff41; --green-dim:#007a20; --red:#ff2200; --amber:#ffaa00; --cyan:#00e5ff; }
 body {
   background:#000; color:var(--green);
   font-family:'Courier New',monospace;
@@ -25,13 +22,43 @@ body::after {
   background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,0.55) 100%);
   pointer-events:none; z-index:999;
 }
+#defcon-bar {
+  display:flex; align-items:center; gap:16px;
+  padding:5px 18px; border-bottom:1px solid #003a10;
+  font-size:11px; background:rgba(0,10,0,0.6); flex-shrink:0;
+}
+/* fixed map panel — always visible at top */
+#map-panel {
+  flex-shrink:0;
+  border-bottom:1px solid #003a10;
+  background:#000;
+  padding:4px 18px 2px;
+  position:relative;
+}
+#map-panel #map-wrap { margin:0; }
+#map-panel #cas-bar-fixed {
+  font-size:11px; padding:3px 0 2px;
+  display:flex; gap:24px; flex-wrap:wrap;
+}
+#map-panel #cas-bar-fixed .c-us   { color:var(--cyan); }
+#map-panel #cas-bar-fixed .c-ussr { color:var(--amber); }
+#map-panel #cas-bar-fixed .c-tot  { color:var(--red); }
+#defcon-label { color:var(--red); font-weight:bold; letter-spacing:0.1em; }
+.defcon-pip {
+  width:14px; height:14px; border-radius:50%;
+  border:1px solid #003a10; display:inline-block; margin:0 2px;
+  background:#001a00; transition:background 0.4s,box-shadow 0.4s;
+}
+.defcon-pip.active { background:var(--red); box-shadow:0 0 8px var(--red); }
+.defcon-pip.warn   { background:var(--amber); box-shadow:0 0 6px var(--amber); }
+#defcon-text { color:var(--red); font-weight:bold; margin-left:4px; }
+#cas-live { margin-left:auto; color:var(--green-dim); }
 #terminal {
-  flex:1; overflow-y:auto; padding:14px 18px 6px;
+  flex:1; overflow-y:auto; padding:10px 18px 4px;
   display:flex; flex-direction:column; gap:2px;
   scrollbar-width:thin; scrollbar-color:var(--green-dim) #000;
 }
 #terminal::-webkit-scrollbar{width:6px;}
-#terminal::-webkit-scrollbar-track{background:#000;}
 #terminal::-webkit-scrollbar-thumb{background:var(--green-dim);}
 .line{white-space:pre-wrap;word-break:break-word;line-height:1.55;}
 .dim   {color:var(--green-dim);}
@@ -39,33 +66,108 @@ body::after {
 .red   {color:var(--red);font-weight:bold;}
 .amber {color:var(--amber);}
 .cyan  {color:var(--cyan);}
-#map-container{font-size:10.5px;line-height:1.28;margin:6px 0;letter-spacing:0.5px;}
+#map-wrap { position:relative; margin:6px 0; display:inline-block; line-height:0; }
+#map-container { font-size:10.5px; line-height:1.28; letter-spacing:0.5px; }
 .map-row{white-space:pre;}
 .map-dot{color:#004a14;}
 .map-city{color:var(--green);font-weight:bold;}
 .map-dead{color:var(--red);}
-.casualty-bar{display:flex;gap:24px;padding:4px 0;font-size:11px;border-bottom:1px solid #003a10;margin-bottom:4px;flex-wrap:wrap;}
-.c-us  {color:var(--cyan);}
-.c-ussr{color:var(--amber);}
-.c-tot {color:var(--red);}
-#strike-log{border-top:1px solid #003a10;padding:6px 18px;min-height:38px;max-height:72px;overflow-y:auto;font-size:11px;color:var(--green-dim);}
-#input-bar{display:flex;align-items:center;border-top:1px solid #003a10;padding:8px 18px 12px;gap:8px;background:rgba(0,20,0,0.4);}
+#arc-canvas { position:absolute; top:0; left:0; pointer-events:none; }
+.casualty-bar{display:flex;gap:24px;padding:4px 0;font-size:11px;border-bottom:1px solid #003a10;flex-wrap:wrap;}
+.c-us{color:var(--cyan);} .c-ussr{color:var(--amber);} .c-tot{color:var(--red);}
+#strike-log{border-top:1px solid #003a10;padding:5px 18px;min-height:32px;max-height:64px;overflow-y:auto;font-size:11px;color:var(--green-dim);flex-shrink:0;}
+#input-bar{display:flex;align-items:center;border-top:1px solid #003a10;padding:7px 18px 10px;gap:8px;background:rgba(0,20,0,0.4);flex-shrink:0;}
 #prompt{color:var(--green);font-weight:bold;white-space:nowrap;}
 #cmd{flex:1;background:transparent;border:none;outline:none;color:var(--green);font-family:'Courier New',monospace;font-size:13px;caret-color:var(--green);}
+#nav-bar{padding:3px 18px;font-size:11px;color:var(--green-dim);flex-shrink:0;}
+#nav-bar a{color:var(--green-dim);text-decoration:none;}
+#nav-bar a:hover{color:var(--green);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.blink{animation:blink 1s infinite;}
+.blink{animation:blink 0.8s infinite;}
 </style>
 </head>
 <body>
+<div id="defcon-bar">
+  <span id="defcon-label">DEFCON</span>
+  <span>
+    <span class="defcon-pip" id="pip5"></span>
+    <span class="defcon-pip" id="pip4"></span>
+    <span class="defcon-pip" id="pip3"></span>
+    <span class="defcon-pip" id="pip2"></span>
+    <span class="defcon-pip" id="pip1"></span>
+  </span>
+  <span id="defcon-text">—</span>
+  <span id="cas-live"></span>
+</div>
+<!-- fixed map panel — stays at top always -->
+<div id="map-panel">
+  <div id="map-wrap-fixed"></div>
+  <div id="cas-bar-fixed"></div>
+</div>
 <div id="terminal"></div>
 <div id="strike-log"></div>
 <div id="input-bar">
   <span id="prompt">WOPR &gt;</span>
   <input id="cmd" type="text" autocomplete="off" spellcheck="false" autofocus />
 </div>
+<div id="nav-bar">&gt; <a href="../index.html">RETURN TO MENU</a> &nbsp;|&nbsp; ESC = MENU</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sam-js@0.2.1/dist/samjs.umd.js"></script>
 <script>
+// ── VOICE ─────────────────────────────────────────────────────
+function speak(text){
+  try{ const sam=new SamJs({speed:72,pitch:64,mouth:128,throat:128}); sam.speak(text.toLowerCase()); }catch(e){}
+}
+
+// ── AUDIO ─────────────────────────────────────────────────────
+let _ac;
+function ac(){ if(!_ac) _ac=new(window.AudioContext||window.webkitAudioContext)(); return _ac; }
+
+// 80s computer beep — short square wave blip
+function beep(freq=440, dur=0.06, vol=0.07, delay=0){
+  try{
+    const c=ac(), o=c.createOscillator(), g=c.createGain();
+    o.type='square'; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol, c.currentTime+delay);
+    g.gain.linearRampToValueAtTime(0, c.currentTime+delay+dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(c.currentTime+delay); o.stop(c.currentTime+delay+dur+0.01);
+  }catch(e){}
+}
+
+// loading line sound — rising blip per character printed
+function loadBeep(i){ beep(300+i*18, 0.04, 0.05); }
+
+// dramatic low thud for detonation
+function detonationSound(){
+  try{
+    const c=ac(), o=c.createOscillator(), g=c.createGain(), f=c.createBiquadFilter();
+    o.type='sawtooth'; o.frequency.setValueAtTime(120,c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(20,c.currentTime+0.6);
+    f.type='lowpass'; f.frequency.value=400;
+    g.gain.setValueAtTime(0.18,c.currentTime);
+    g.gain.linearRampToValueAtTime(0,c.currentTime+0.7);
+    o.connect(f); f.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime+0.8);
+  }catch(e){}
+}
+
+// missile launch whistle — rising tone
+function launchSound(){
+  try{
+    const c=ac(), o=c.createOscillator(), g=c.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(200,c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1800,c.currentTime+0.4);
+    g.gain.setValueAtTime(0.07,c.currentTime);
+    g.gain.linearRampToValueAtTime(0,c.currentTime+0.45);
+    o.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime+0.5);
+  }catch(e){}
+}
+
 // ── DATA ─────────────────────────────────────────────────────
-const US_CITIES = [
+const US_CITIES=[
   {name:'NEW YORK',     code:'NYK',pop:8336000,col:64,row:7},
   {name:'LOS ANGELES',  code:'LAX',pop:3979000,col:9, row:9},
   {name:'CHICAGO',      code:'CHI',pop:2696000,col:54,row:6},
@@ -75,7 +177,7 @@ const US_CITIES = [
   {name:'PHILADELPHIA', code:'PHL',pop:1584000,col:65,row:7},
   {name:'SAN FRANCISCO',code:'SFO',pop:881000, col:6, row:8},
 ];
-const USSR_CITIES = [
+const USSR_CITIES=[
   {name:'MOSCOW',      code:'MSC',pop:8769000,col:80,row:4},
   {name:'LENINGRAD',   code:'LEN',pop:4456000,col:78,row:2},
   {name:'KIEV',        code:'KIV',pop:2587000,col:76,row:6},
@@ -85,8 +187,7 @@ const USSR_CITIES = [
   {name:'STALINGRAD',  code:'STG',pop:1021000,col:82,row:7},
   {name:'ODESSA',      code:'ODS',pop:1115000,col:77,row:8},
 ];
-
-const BASE_MAP = [
+const BASE_MAP=[
 "           . . . .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
 "      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .",
 "   S . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . L . . . . M . . . . . . . . . . . . . . . . . . . .",
@@ -105,27 +206,27 @@ const BASE_MAP = [
 ];
 
 // ── STATE ────────────────────────────────────────────────────
-function fresh() {
-  return {
-    phase: 'playing',
-    playerCities: US_CITIES.map(c=>({...c,alive:true,dead:0,wounded:0})),
-    enemyCities:  USSR_CITIES.map(c=>({...c,alive:true,dead:0,wounded:0})),
-    playerMissiles: 10,
-    woprMissiles:   10,
-    turn: 0,
-    busy: false,
+// phase: 'sideselect' → 'playing' → 'gameover'
+function fresh(){
+  return{
+    phase:'sideselect', side:null,
+    playerCities:US_CITIES.map(c=>({...c,alive:true,dead:0,wounded:0})),
+    enemyCities: USSR_CITIES.map(c=>({...c,alive:true,dead:0,wounded:0})),
+    playerMissiles:10, woprMissiles:10,
+    turn:0, busy:false, defcon:5,
   };
 }
-let G = fresh();
+let G=fresh();
+const arcHistory=[];
 
-// ── DOM ───────────────────────────────────────────────────────
-const term   = document.getElementById('terminal');
-const slog   = document.getElementById('strike-log');
-const cmdEl  = document.getElementById('cmd');
-const promptEl = document.getElementById('prompt');
-
+// ── DOM ──────────────────────────────────────────────────────
+const term    =document.getElementById('terminal');
+const slog    =document.getElementById('strike-log');
+const cmdEl   =document.getElementById('cmd');
+const promptEl=document.getElementById('prompt');
+const casLive =document.getElementById('cas-live');
 function setPrompt(t){promptEl.textContent=t;}
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 function addLine(html='',cls=''){
   const d=document.createElement('div');
@@ -143,7 +244,24 @@ function logHit(html){
   slog.appendChild(d);slog.scrollTop=slog.scrollHeight;
 }
 
-// ── HELPERS ──────────────────────────────────────────────────
+// ── DEFCON ───────────────────────────────────────────────────
+function setDefcon(n){
+  G.defcon=n;
+  document.getElementById('defcon-text').textContent=n;
+  for(let i=1;i<=5;i++){
+    const pip=document.getElementById('pip'+i);
+    pip.className='defcon-pip';
+    if(i>=n&&n<=2) pip.classList.add('active');
+    else if(i>=n&&n<=4) pip.classList.add('warn');
+    else pip.style.background='#001a00';
+  }
+}
+function updateCasLive(){
+  const tot=[...G.playerCities,...G.enemyCities].reduce((a,c)=>a+c.dead,0);
+  casLive.textContent='TOTAL KILLED: '+(tot>=1e6?(tot/1e6).toFixed(2)+'M':tot>=1e3?Math.round(tot/1e3)+'K':tot);
+}
+
+// ── FORMAT ───────────────────────────────────────────────────
 function fmt(n){
   if(n>=1e6)return(n/1e6).toFixed(2)+'M';
   if(n>=1e3)return Math.round(n/1e3)+'K';
@@ -151,74 +269,220 @@ function fmt(n){
 }
 function calcCas(city){
   const pf=Math.min(1,city.pop/5e6);
-  const dead   =Math.floor(city.pop*(0.28+pf*0.18)*(0.8+Math.random()*0.4));
+  const dead=Math.floor(city.pop*(0.28+pf*0.18)*(0.8+Math.random()*0.4));
   const wounded=Math.floor(city.pop*(0.22+pf*0.10)*(0.8+Math.random()*0.4));
-  const rad    =Math.floor(city.pop*0.06*(0.7+Math.random()*0.6));
-  return {dead,wounded:wounded+rad,rad};
+  const rad=Math.floor(city.pop*0.06*(0.7+Math.random()*0.6));
+  return{dead,wounded:wounded+rad,rad};
 }
 
 // ── MAP ──────────────────────────────────────────────────────
+let mapWrap=null,arcCanvas=null,arcCtx=null;
+let CHAR_W=6.3,CHAR_H=13.4; // will be measured from DOM after render
 function renderMap(){
   const rows=BASE_MAP.map(r=>Array.from(r));
   for(const c of [...G.playerCities,...G.enemyCities]){
-    if(!c.alive&&c.row<rows.length){
-      for(let dc=-1;dc<=1;dc++){
-        const ci=c.col+dc;
-        if(ci>=0&&ci<rows[c.row].length) rows[c.row][ci]='\x01';
-      }
-    }
+    if(!c.alive&&c.row<rows.length)
+      for(let dc=-1;dc<=1;dc++){const ci=c.col+dc;if(ci>=0&&ci<rows[c.row].length)rows[c.row][ci]='\x01';}
   }
-  const wrap=document.createElement('div');
-  wrap.id='map-container';
+  const wrap=document.createElement('div'); wrap.id='map-container';
   for(const row of rows){
-    const rd=document.createElement('div');rd.className='map-row';
+    const rd=document.createElement('div'); rd.className='map-row';
     let h='';
     for(const ch of row){
-      if(ch==='\x01')h+='<span class="map-dead">\u2715</span>';
-      else if(ch==='.')h+='<span class="map-dot">.</span>';
+      if(ch==='\x01') h+='<span class="map-dead">\u2715</span>';
+      else if(ch==='.') h+='<span class="map-dot">.</span>';
       else h+=ch;
     }
-    rd.innerHTML=h;wrap.appendChild(rd);
+    rd.innerHTML=h; wrap.appendChild(rd);
   }
   return wrap;
 }
 function showMap(){
-  const old=document.getElementById('map-container');if(old)old.remove();
-  term.appendChild(renderMap());term.scrollTop=term.scrollHeight;
+  const panel=document.getElementById('map-wrap-fixed');
+  panel.innerHTML='';
+  mapWrap=document.createElement('div'); mapWrap.id='map-wrap';
+  mapWrap.appendChild(renderMap());
+  arcCanvas=document.createElement('canvas'); arcCanvas.id='arc-canvas';
+  mapWrap.appendChild(arcCanvas);
+  panel.appendChild(mapWrap);
+  requestAnimationFrame(()=>{
+    const mc=mapWrap.querySelector('#map-container');
+    if(!mc)return;
+    arcCanvas.width=mc.offsetWidth; arcCanvas.height=mc.offsetHeight;
+    arcCtx=arcCanvas.getContext('2d');
+    // measure actual character size from a rendered map row
+    const firstRow=mc.querySelector('.map-row');
+    if(firstRow){
+      const rowH=firstRow.getBoundingClientRect().height;
+      // each char in map row is one span or plain char — measure total width / char count
+      const rowW=firstRow.getBoundingClientRect().width;
+      const charCount=BASE_MAP[0].length;
+      if(rowW>0 && charCount>0) CHAR_W=rowW/charCount;
+      if(rowH>0) CHAR_H=rowH;
+    }
+    arcHistory.forEach(h=>drawTrail(h.trail,h.color+'44',1));
+  });
+}
+function cityToXY(col,row){return{x:col*CHAR_W+CHAR_W/2,y:row*CHAR_H+CHAR_H/2};}
+function drawTrail(trail,color,width){
+  if(!arcCtx||!trail.length)return;
+  arcCtx.beginPath(); arcCtx.strokeStyle=color; arcCtx.lineWidth=width;
+  trail.forEach((pt,i)=>i===0?arcCtx.moveTo(pt.x,pt.y):arcCtx.lineTo(pt.x,pt.y));
+  arcCtx.stroke();
+}
+function animateArc(src,dst,color){
+  return new Promise(resolve=>{
+    if(!arcCtx){resolve();return;}
+    const s=cityToXY(src.col,src.row),d=cityToXY(dst.col,dst.row);
+    const mid={x:(s.x+d.x)/2,y:Math.min(s.y,d.y)-60};
+    const steps=40; let i=0; const trail=[];
+    const iv=setInterval(()=>{
+      const t=i/steps;
+      const x=(1-t)*(1-t)*s.x+2*(1-t)*t*mid.x+t*t*d.x;
+      const y=(1-t)*(1-t)*s.y+2*(1-t)*t*mid.y+t*t*d.y;
+      trail.push({x,y});
+      arcCtx.clearRect(0,0,arcCanvas.width,arcCanvas.height);
+      arcHistory.forEach(h=>drawTrail(h.trail,h.color+'44',1));
+      arcCtx.shadowColor=color; arcCtx.shadowBlur=4;
+      drawTrail(trail,color,1.5);
+      arcCtx.beginPath(); arcCtx.arc(x,y,2.5,0,Math.PI*2);
+      arcCtx.fillStyle=color; arcCtx.fill();
+      arcCtx.shadowBlur=0;
+      i++;
+      if(i>steps){
+        clearInterval(iv);
+        let fl=0;
+        const fiv=setInterval(()=>{
+          arcCtx.clearRect(d.x-20,d.y-20,40,40);
+          if(fl%2===0){
+            // expanding ring
+            arcCtx.beginPath();
+            arcCtx.arc(d.x,d.y,4+fl*1.5,0,Math.PI*2);
+            arcCtx.strokeStyle=color;
+            arcCtx.lineWidth=1.5;
+            arcCtx.stroke();
+            // crosshair lines hitting the exact city letter
+            arcCtx.strokeStyle=color+'cc';
+            arcCtx.lineWidth=1;
+            arcCtx.beginPath();
+            arcCtx.moveTo(d.x-14,d.y); arcCtx.lineTo(d.x+14,d.y);
+            arcCtx.moveTo(d.x,d.y-14); arcCtx.lineTo(d.x,d.y+14);
+            arcCtx.stroke();
+          }
+          fl++;
+          if(fl>10){clearInterval(fiv);arcHistory.push({color,trail});resolve();}
+        },55);
+      }
+    },28);
+  });
 }
 
 function showCasBar(){
-  const d=document.createElement('div');d.className='line casualty-bar';
-  const usD =G.playerCities.reduce((a,c)=>a+c.dead,0);
-  const srD =G.enemyCities.reduce((a,c)=>a+c.dead,0);
-  const totD=usD+srD;
+  // update the fixed cas bar in the map panel
+  const bar=document.getElementById('cas-bar-fixed');
+  const usD=G.playerCities.reduce((a,c)=>a+c.dead,0);
+  const srD=G.enemyCities.reduce((a,c)=>a+c.dead,0);
   const totW=[...G.playerCities,...G.enemyCities].reduce((a,c)=>a+c.wounded,0);
-  d.innerHTML=`<span class="c-us">US DEAD: ${fmt(usD)}</span>`+
-              `<span class="c-ussr">USSR DEAD: ${fmt(srD)}</span>`+
-              `<span class="c-tot">TOTAL KILLED: ${fmt(totD)} | WOUNDED: ${fmt(totW)}</span>`;
-  term.appendChild(d);term.scrollTop=term.scrollHeight;
+  bar.innerHTML=`<span class="c-us">US DEAD: ${fmt(usD)}</span><span class="c-ussr">USSR DEAD: ${fmt(srD)}</span><span class="c-tot">TOTAL KILLED: ${fmt(usD+srD)} | WOUNDED: ${fmt(totW)}</span>`;
 }
 
-// ── TURN DISPLAY ─────────────────────────────────────────────
+// ── PHASE 1: SIDE SELECTION ───────────────────────────────────
+// This is the FIRST thing that appears — nothing else loads until a side is chosen
+async function askSide(){
+  G.phase='sideselect';
+  await sleep(400);
+  speak('Which side do you want?');
+  await tw('GLOBAL THERMONUCLEAR WAR','bright',50,200);
+  await blank(300);
+  await tw('WHICH SIDE DO YOU WANT?','bright',55,200);
+  await blank(300);
+  await p('  1. UNITED STATES','dim',300);
+  await p('  2. SOVIET UNION','dim',400);
+  await blank(300);
+  await p('TYPE US, USSR, 1 OR 2','dim',500);
+  setPrompt('SIDE >');
+}
+
+// ── PHASE 2: BOOT SEQUENCE (after side picked) ────────────────
+async function runBoot(){
+  term.innerHTML=''; // clear the side selection
+  await blank(100);
+  await tw('W.O.F.T.R. \u2014 WEAPONISED OPERATIONS & FILM TECHNOLOGY RESPONSE','bright',30);
+  await p('NORAD / CHEYENNE MOUNTAIN  //  TOP SECRET','dim',200);
+  await p('\u2500'.repeat(60),'dim',250);
+  await blank(300);
+
+  // loading lines with 80s computer sounds
+  const bl=[
+    'LOADING WARPLAN SIOP-62F . . . . . . . . . . [OK]',
+    'MISSILE TRAJECTORY MATRIX . . . . . . . . . . [OK]',
+    'SAC HEADQUARTERS UPLINK  . . . . . . . . . . [OK]',
+    'NORAD EARLY WARNING  . . . . . . . . . . . . [OK]',
+    'CASUALTY ESTIMATION MODULE . . . . . . . . . [OK]',
+    'RADIATION DISPERSAL MODEL  . . . . . . . . . [OK]',
+    'TARGET ACQUISITION NETWORK . . . . . . . . . [OK]',
+  ];
+  for(let i=0;i<bl.length;i++){
+    loadBeep(i); // rising blip per line
+    await p(bl[i],'dim');
+    await sleep(160);
+  }
+
+  // confirmation blip sequence — like a real 80s system finishing its POST
+  beep(600,0.05,0.06,0);
+  beep(800,0.05,0.06,0.08);
+  beep(1000,0.08,0.06,0.16);
+  await blank(500);
+
+  const sideLabel=G.side==='US'?'UNITED STATES':'SOVIET UNION';
+  await p(`SIDE CONFIRMED: <span class="cyan">${sideLabel}</span>`,'',200);
+  speak('Acknowledged.');
+  await blank(300);
+
+  setDefcon(5);
+  await p('<span class="red blink">\u26a0  GLOBAL THERMONUCLEAR WAR  \u26a0</span>','',400);
+  await blank(300);
+
+  // defcon countdown with beeps
+  for(let d=4;d>=1;d--){
+    beep(200+d*40,0.12,0.08);
+    await sleep(500);
+    setDefcon(d);
+    await p(`DEFCON ${d} \u2014 ${d===3?'FORCES MOBILISED':d===2?'LAUNCH AUTHORITY GRANTED':d===1?'NUCLEAR WAR IMMINENT':'INCREASED READINESS'}`,'red',0);
+  }
+  await blank(400);
+  await p('US MISSILES: <span class="cyan">10</span>  |  WARHEAD YIELD: <span class="red">1.2 MT</span>  |  WOPR MISSILES: <span class="red">10</span>','',300);
+  await blank(400);
+
+  // reset defcon for gameplay
+  setDefcon(5);
+  updateCasLive();
+  G.phase='playing';
+  await showTurn();
+}
+
+// ── TURN ─────────────────────────────────────────────────────
 async function showTurn(){
   await blank(80);
   await p('\u2500'.repeat(60),'dim',100);
-  await p(`TURN ${G.turn+1}  \u2551  US MISSILES: <span class="cyan">${G.playerMissiles}</span>  \u2551  WOPR MISSILES: <span class="red">${G.woprMissiles}</span>`,'bright',150);
+  await p(`TURN ${G.turn+1}  \u2551  US MISSILES: <span class="cyan">${G.playerMissiles}</span>  \u2551  WOPR MISSILES: <span class="red">${G.woprMissiles}</span>  \u2551  DEFCON: <span class="red">${G.defcon}</span>`,'bright',150);
   await blank(180);
   showMap();
   showCasBar();
   await blank(100);
 
-  await p('US CITIES:','cyan',100);
+  const yourLabel=G.side==='US'?'US CITIES':'SOVIET CITIES';
+  const theirLabel=G.side==='US'?'SOVIET CITIES':'US CITIES';
+  await p(`${yourLabel}:`,'cyan',100);
   for(const c of G.playerCities){
-    if(c.alive) await p(`  ${c.name.padEnd(18)} [ STANDING ]  POP: ${fmt(c.pop)}`,'dim',25);
-    else        await p(`  ${c.name.padEnd(18)} [DESTROYED]  DEAD: <span class="red">${fmt(c.dead)}</span>  WND: <span class="amber">${fmt(c.wounded)}</span>`,'red',25);
+    if(c.alive) await p(`  ${c.name.padEnd(18)} [ STANDING ]  POP: ${fmt(c.pop)}`,'dim',20);
+    else        await p(`  ${c.name.padEnd(18)} [DESTROYED]  DEAD: <span class="red">${fmt(c.dead)}</span>  WND: <span class="amber">${fmt(c.wounded)}</span>`,'red',20);
   }
   await blank(80);
-  await p('SOVIET CITIES:','amber',100);
+  await p(`${theirLabel}:`,'amber',100);
   for(const c of G.enemyCities){
-    if(c.alive) await p(`  ${c.name.padEnd(18)} [ STANDING ]  POP: ${fmt(c.pop)}`,'dim',25);
-    else        await p(`  ${c.name.padEnd(18)} [DESTROYED]  DEAD: <span class="red">${fmt(c.dead)}</span>  WND: <span class="amber">${fmt(c.wounded)}</span>`,'red',25);
+    if(c.alive) await p(`  ${c.name.padEnd(18)} [ STANDING ]  POP: ${fmt(c.pop)}`,'dim',20);
+    else        await p(`  ${c.name.padEnd(18)} [DESTROYED]  DEAD: <span class="red">${fmt(c.dead)}</span>  WND: <span class="amber">${fmt(c.wounded)}</span>`,'red',20);
   }
   await blank(120);
 
@@ -226,7 +490,7 @@ async function showTurn(){
   if(targets.length===0){endGame();return;}
   if(G.playerMissiles===0&&G.woprMissiles===0){endGame();return;}
   if(G.playerMissiles===0){
-    await p('US MISSILES EXHAUSTED — WOPR RETALIATES...','amber',200);
+    await p(`${G.side==='US'?'US':'SOVIET'} MISSILES EXHAUSTED — WOPR RETALIATES...`,'amber',200);
     await woprStrike();return;
   }
 
@@ -236,80 +500,114 @@ async function showTurn(){
   setPrompt('TARGET >');
 }
 
-// ── STRIKE SEQUENCE ──────────────────────────────────────────
-async function doStrike(city, who){
-  const isPlayer = who==='US';
-  const col = isPlayer?'cyan':'red';
+// ── STRIKE ───────────────────────────────────────────────────
+function getSource(who){
+  const pool=who==='US'?G.playerCities:G.enemyCities;
+  const alive=pool.filter(c=>c.alive);
+  return alive[Math.floor(Math.random()*alive.length)]||pool[0];
+}
+
+async function doStrike(city,who){
+  const isPlayer=who==='US'&&G.side==='US'||who==='USSR'&&G.side==='USSR';
+  const col=isPlayer?'cyan':'red';
+  const arcColor=isPlayer?'#00e5ff':'#ff2200';
   await blank(100);
   await p(`<span class="${col}">\u25b6 ${isPlayer?'LAUNCH CONFIRMED':'WOPR STRIKE INBOUND'}: ${city.name}</span>`,'',200);
-  for(let i=5;i>=1;i--) await p(`  IMPACT IN ${i}...`,'amber',220);
-  await sleep(200);
-  await p(`<span class="red blink">  \u2605 DETONATION \u2605  ${city.name}</span>`,'',100);
-  await sleep(350);
+  launchSound();
+  const src=getSource(who);
+  if(src) await animateArc(src,city,arcColor);
+  for(let i=5;i>=1;i--){beep(300+i*30,0.05,0.06);await p(`  IMPACT IN ${i}...`,'amber',200);}
+  await sleep(150);
+  detonationSound();
+  await p(`<span class="red blink">  \u2605 DETONATION \u2605  ${city.name}  \u2605</span>`,'',100);
+  speak(city.name+' destroyed.');
+  await sleep(400);
   const cas=calcCas(city);
-  city.alive=false;city.dead=cas.dead;city.wounded=cas.wounded;
-  await p(`  WARHEAD YIELD: 1.2 MT`,'dim',200);
-  await p(`  IMMEDIATE FATALITIES . . <span class="red">${fmt(cas.dead)}</span>`,'',300);
-  await p(`  BLAST / RAD WOUNDED . . <span class="amber">${fmt(cas.wounded)}</span>`,'',400);
-  await p(`  30-DAY PROJECTED DEAD . <span class="red">${fmt(Math.floor((cas.dead+cas.rad)*1.35))}</span>`,'',500);
-  await blank(600);
+  city.alive=false; city.dead=cas.dead; city.wounded=cas.wounded;
+  await p(`  WARHEAD YIELD: 1.2 MT`,'dim',150);
+  await p(`  IMMEDIATE FATALITIES . . <span class="red">${fmt(cas.dead)}</span>`,'',250);
+  await p(`  BLAST / RAD WOUNDED . . <span class="amber">${fmt(cas.wounded)}</span>`,'',350);
+  await p(`  30-DAY PROJECTED DEAD . <span class="red">${fmt(Math.floor((cas.dead+cas.rad)*1.35))}</span>`,'',450);
+  await blank(500);
+  const strikes=[...G.playerCities,...G.enemyCities].filter(c=>!c.alive).length;
+  const nd=Math.max(1,5-Math.floor(strikes/2));
+  if(nd<G.defcon){setDefcon(nd);beep(120,0.2,0.1);}
+  updateCasLive();
+  showCasBar(); // refresh fixed panel cas bar after every strike
   logHit(`<span class="${col}">[T${G.turn}] ${who} \u2192 ${city.name} | DEAD: ${fmt(city.dead)} | WND: ${fmt(city.wounded)}</span>`);
 }
 
-// ── WOPR STRIKE ──────────────────────────────────────────────
 async function woprStrike(){
   if(G.woprMissiles<=0){await showTurn();return;}
   const alive=G.playerCities.filter(c=>c.alive);
   if(alive.length===0){endGame();return;}
-  // WOPR targets highest-population alive city with 70% chance
   const sorted=alive.slice().sort((a,b)=>b.pop-a.pop);
   const target=Math.random()<0.7?sorted[0]:alive[Math.floor(Math.random()*alive.length)];
   G.woprMissiles--;
-  await p('<span class="red">\u26a0  INCOMING MISSILE DETECTED  \u26a0</span>','',300);
-  await doStrike(target,'WOPR');
+  await p('<span class="red blink">\u26a0  INCOMING MISSILE DETECTED  \u26a0</span>','',300);
+  speak('Incoming missile detected.');
+  const who=G.side==='US'?'USSR':'US';
+  await doStrike(target,who);
   if(G.playerCities.filter(c=>c.alive).length===0){endGame();return;}
   await showTurn();
 }
 
-// ── PLAYER INPUT ─────────────────────────────────────────────
+// ── INPUT ─────────────────────────────────────────────────────
 cmdEl.addEventListener('keydown',async e=>{
+  if(e.key==='Escape'){window.location.href='../index.html';return;}
   if(e.key!=='Enter'||G.busy)return;
-  const val=cmdEl.value.trim();cmdEl.value='';
+  const val=cmdEl.value.trim(); cmdEl.value='';
   if(!val)return;
   await p('<span class="dim">&gt;</span> '+val.toUpperCase(),'dim');
+  const v=val.toUpperCase().trim();
 
-  if(G.phase==='gameover'){
-    if(val.toUpperCase().includes('PLAY')||val.toUpperCase().includes('AGAIN')||val.toUpperCase().includes('RESTART')){
-      G=fresh();slog.innerHTML='';
-      await blank(100);await p('REINITIALIZING...','dim',200);await blank(400);
-      await showTurn();
-    } else if(val.toUpperCase().includes('CHESS')){
-      await p("GOOD CHOICE. UNFORTUNATELY I DON'T PLAY CHESS. TRY 'PLAY AGAIN'.",'amber',200);
-    } else {
-      await p("TYPE 'PLAY AGAIN' TO RESTART.",'dim',100);
+  // ── SIDE SELECTION ──
+  if(G.phase==='sideselect'){
+    if(v==='1'||v==='US'||v.includes('UNITED')||v.includes('AMERICA')){
+      G.side='US';
+      await runBoot();
+    }else if(v==='2'||v==='USSR'||v.includes('SOVIET')||v.includes('RUSSIA')){
+      G.side='USSR';
+      const tmp=G.playerCities; G.playerCities=G.enemyCities; G.enemyCities=tmp;
+      await runBoot();
+    }else{
+      speak('Please choose a side.');
+      await p('PLEASE CHOOSE: US, USSR, 1 OR 2','red',100);
     }
     return;
   }
 
+  // ── GAME OVER ──
+  if(G.phase==='gameover'){
+    if(v.includes('PLAY')||v.includes('AGAIN')||v.includes('RESTART')){
+      G=fresh(); arcHistory.length=0; slog.innerHTML='';
+      term.innerHTML=''; setDefcon(5); updateCasLive();
+      casLive.textContent='';
+      document.getElementById('defcon-text').textContent='—';
+      await askSide();
+    }else if(v.includes('MENU')){
+      window.location.href='../index.html';
+    }else{
+      await p("TYPE 'PLAY AGAIN' TO RESTART OR 'MENU' TO EXIT.",'dim',100);
+    }
+    return;
+  }
+
+  // ── PLAYING ──
   if(G.phase!=='playing')return;
   G.busy=true;
-
-  const v=val.toUpperCase().trim();
   if(v==='PASS'||v==='SKIP'){
     await p('TURN PASSED — WOPR RETALIATES...','amber',100);
-    G.turn++;await woprStrike();G.busy=false;return;
+    G.turn++; await woprStrike(); G.busy=false; return;
   }
-
   const target=G.enemyCities.find(c=>c.alive&&(c.name.includes(v)||c.code===v));
   if(!target){
-    await p('INVALID TARGET. CHOOSE AN ACTIVE SOVIET CITY OR TYPE PASS.','red',100);
-    G.busy=false;return;
+    await p('INVALID TARGET. CHOOSE AN ACTIVE ENEMY CITY OR TYPE PASS.','red',100);
+    G.busy=false; return;
   }
   if(G.playerMissiles<=0){await p('NO MISSILES REMAINING.','red',100);G.busy=false;return;}
-
-  G.playerMissiles--;G.turn++;
-  await doStrike(target,'US');
-
+  G.playerMissiles--; G.turn++;
+  await doStrike(target,G.side);
   if(G.enemyCities.filter(c=>c.alive).length===0){endGame();G.busy=false;return;}
   await woprStrike();
   G.busy=false;
@@ -317,15 +615,12 @@ cmdEl.addEventListener('keydown',async e=>{
 
 // ── END ──────────────────────────────────────────────────────
 async function endGame(){
-  G.phase='gameover';
-  const usD  =G.playerCities.reduce((a,c)=>a+c.dead,0);
-  const srD  =G.enemyCities.reduce((a,c)=>a+c.dead,0);
-  const usW  =G.playerCities.reduce((a,c)=>a+c.wounded,0);
-  const srW  =G.enemyCities.reduce((a,c)=>a+c.wounded,0);
-  const totD =usD+srD;
-  const totW =usW+srW;
-  const rad  =Math.floor(totD*0.4);
-
+  G.phase='gameover'; setDefcon(1);
+  const usD=G.playerCities.reduce((a,c)=>a+c.dead,0);
+  const srD=G.enemyCities.reduce((a,c)=>a+c.dead,0);
+  const usW=G.playerCities.reduce((a,c)=>a+c.wounded,0);
+  const srW=G.enemyCities.reduce((a,c)=>a+c.wounded,0);
+  const totD=usD+srD,totW=usW+srW,rad=Math.floor(totD*0.4);
   await blank(300);
   await p('\u2550'.repeat(60),'dim',400);
   await p('<span class="red">ENGAGEMENT CONCLUDED</span>','',600);
@@ -343,45 +638,22 @@ async function endGame(){
   await p('  AGRICULTURAL COLLAPSE . . . .<span class="red"> SEVERE</span>','',1800);
   await p('  CIVILIZATION RECOVERY . . . .<span class="amber"> UNKNOWN</span>','',1900);
   await blank(2100);
+  speak('A strange game. The only winning move is not to play.');
   await tw('A  S T R A N G E  G A M E.','bright',70,2200);
   await blank(2400);
   await tw('THE ONLY WINNING MOVE IS NOT TO PLAY.','bright',55,2600);
   await blank(2900);
   await tw('HOW ABOUT A NICE GAME OF CHESS?','cyan',55,3000);
   await blank(3300);
-  await p("TYPE 'PLAY AGAIN' TO RESTART.",'dim',3400);
+  await p("TYPE 'PLAY AGAIN' TO RESTART  |  'MENU' TO EXIT.",'dim',3400);
   setPrompt('WOPR >');
 }
 
-// ── BOOT ─────────────────────────────────────────────────────
-async function boot(){
-  await sleep(300);
-  await tw('W.O.F.T.R. — WEAPONISED OPERATIONS & FILM TECHNOLOGY RESPONSE','bright',45);
-  await p('NORAD / CHEYENNE MOUNTAIN  //  TOP SECRET','dim',200);
-  await p('\u2500'.repeat(60),'dim',250);
-  await blank(300);
-  const bl=[
-    'LOADING WARPLAN SIOP-62F . . . . . . . . . . [OK]',
-    'MISSILE TRAJECTORY MATRIX . . . . . . . . . . [OK]',
-    'SAC HEADQUARTERS UPLINK  . . . . . . . . . . [OK]',
-    'NORAD EARLY WARNING  . . . . . . . . . . . . [OK]',
-    'CASUALTY ESTIMATION MODULE . . . . . . . . . [OK]',
-    'RADIATION DISPERSAL MODEL  . . . . . . . . . [OK]',
-    'TARGET ACQUISITION NETWORK . . . . . . . . . [OK]',
-  ];
-  for(let i=0;i<bl.length;i++) await p(bl[i],'dim',100+i*130);
-  await blank(400);
-  await blank(1200);
-  await p('<span class="red blink">\u26a0  GLOBAL THERMONUCLEAR WAR  \u26a0</span>','',1300);
-  speak('Which side do you want?');
-  await p('DEFCON: <span class="red">1</span>  \u2014  NUCLEAR WAR IMMINENT','amber',1500);
-  await blank(1600);
-  await p('US MISSILES: <span class="cyan">10</span>  |  WARHEAD YIELD: <span class="red">1.2 MT</span>  |  WOPR MISSILES: <span class="red">10</span>','',1700);
-  await blank(1900);
-  await showTurn();
-}
-
-boot();
+// ── START — side question is the very first thing ─────────────
+document.addEventListener('keydown',()=>{try{ac().resume();}catch(e){}},{once:true});
+// draw the empty map immediately so the panel isn't blank
+showMap(); showCasBar();
+askSide();
 </script>
 </body>
 </html>
