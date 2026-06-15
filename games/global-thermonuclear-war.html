@@ -391,7 +391,6 @@ function showCasBar(){
 async function askSide(){
   G.phase='sideselect';
   await sleep(400);
-  speak('Which side do you want?');
   await tw('GLOBAL THERMONUCLEAR WAR','bright',50,200);
   await blank(300);
   await tw('WHICH SIDE DO YOU WANT?','bright',55,200);
@@ -400,6 +399,7 @@ async function askSide(){
   await p('  2. SOVIET UNION','dim',400);
   await blank(300);
   await p('TYPE US, USSR, 1 OR 2','dim',500);
+  speak('Which side do you want?');
   setPrompt('SIDE >');
 }
 
