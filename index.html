@@ -574,6 +574,10 @@ async function handleGlobalThermonuclearWar(cmd) {
   return false;
 }
 async function launchGame(cmd){
+  const up = cmd.toUpperCase();
+  if (up.includes('GLOBAL') || up.includes('THERMONUCLEAR')) {
+    return handleGlobalThermonuclearWar(cmd);
+  }
   if(isTTT(cmd)){
     gameResponse.textContent='';
     await typeText(gameResponse,'...', 80);
