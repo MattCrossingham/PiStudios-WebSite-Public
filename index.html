@@ -223,6 +223,8 @@ input[type="text"] {
 <script>
 <script>
 // ── WOPR / JOSHUA VOICE (Web Speech) ─────────────────────────────────────
+<script>
+// ── WOPR / JOSHUA VOICE (Web Speech) ─────────────────────────────────────
 let woprVoice = null;
 
 function pickVoice() {
@@ -262,6 +264,23 @@ function speak(text) {
 window.speechSynthesis.onvoiceschanged = pickVoice;
 pickVoice();
 </script>
+let woprVoice = null;
+
+function pickVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+  const prefer = ["Microsoft David", "Google UK English Male", "Daniel", "Microsoft Mark", "Fred", "Google US English", "Albert"];
+  for (const name of prefer) {
+    const v = voices.find(x => x.name.includes(name));
+    if (v) { woprVoice = v; return; }
+  }
+  woprVoice = voices.find(v => /en[-_]/i.test(v.lang)) || voices[0];
+}
+
+
+window.speechSynthesis.onvoiceschanged = pickVoice;
+pickVoice();
+</script>
 // ── WOPR VOICE (SAM) ───────────────────────────────────────────────
 
 
@@ -269,6 +288,8 @@ pickVoice();
 <script>
 <script src="sam.js"></script>
 <script>
+<script>
+// ── WOPR / JOSHUA VOICE (Web Speech) ─────────────────────────────────────
 <script>
 // ── WOPR / JOSHUA VOICE (Web Speech) ─────────────────────────────────────
 let woprVoice = null;
@@ -306,6 +327,23 @@ function speak(text) {
     chain();
   } catch(e) {}
 }
+
+window.speechSynthesis.onvoiceschanged = pickVoice;
+pickVoice();
+</script>
+let woprVoice = null;
+
+function pickVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+  const prefer = ["Microsoft David", "Google UK English Male", "Daniel", "Microsoft Mark", "Fred", "Google US English", "Albert"];
+  for (const name of prefer) {
+    const v = voices.find(x => x.name.includes(name));
+    if (v) { woprVoice = v; return; }
+  }
+  woprVoice = voices.find(v => /en[-_]/i.test(v.lang)) || voices[0];
+}
+
 
 window.speechSynthesis.onvoiceschanged = pickVoice;
 pickVoice();
