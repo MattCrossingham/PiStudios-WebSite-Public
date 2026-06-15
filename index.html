@@ -219,12 +219,46 @@ input[type="text"] {
 </div>
 
 
-<script src="samjs.js"></script>
+<script src="sam.js"></script>
 <script>
+// ── WOPR VOICE (SAM) ───────────────────────────────────────────────
+let sam = null;
+
+function initSAM() {
+  try {
+    const SamConstructor = window.SamJs || window.samJs || SamJs;
+    if (SamConstructor) {
+      sam = new SamConstructor({
+        speed: 72,
+        pitch: 64,
+        throat: 128,
+        mouth: 128
+      });
+      console.log('%c✅ [SAM] WOPR voice initialized - crunchy 80s robot', 'color:#0f0; font-weight:bold');
+    } else {
+      console.error('❌ [SAM] SamJs constructor not found');
+    }
+  } catch(e) {
+    console.error('❌ [SAM] Init failed:', e);
+  }
+}
+
+function speak(text) {
+  if (!sam) {
+    console.warn('[SAM] Not ready - skipping voice');
+    return;
+  }
+  try {
+    sam.speak((text || '' ).toLowerCase());
+  } catch(e) {
+    console.error('[SAM] Speak error:', e);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(initSAM, 400));
+</script>
 <script>
-<script src="samjs.js"></script>
-<script>
-<script src="samjs.js"></script>
+<script src="sam.js"></script>
 <script>
 // ── WOPR VOICE (SAM) ───────────────────────────────────────────────
 let sam = null;
