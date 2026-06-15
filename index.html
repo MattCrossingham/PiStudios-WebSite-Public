@@ -223,100 +223,72 @@ input[type="text"] {
 <script>
 <script src="sam.js"></script>
 <script>
-// ── WOPR VOICE (SAM) ───────────────────────────────────────────────
-let sam = null;
+<script>
+// ── WOPR / JOSHUA VOICE (Modern Distorted TTS) ─────────────────────
+let audioContext;
 
-function initSAM() {
-  try {
-    const SamConstructor = window.SamJs || window.samJs || SamJs;
-    if (SamConstructor) {
-      sam = new SamConstructor({
-        speed: 82,
-        pitch: 48,
-        throat: 110,
-        mouth: 105
-      });
-      console.log('%c✅ [SAM] WOPR voice tuned - closer to Joshua', 'color:#0f0; font-weight:bold');
-    } else {
-      console.error('❌ [SAM] Constructor not found');
-    }
-  } catch(e) {
-    console.error('❌ [SAM] Init failed:', e);
-  }
+function initWOPRVoice() {
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  console.log('%c✅ [WOPR] Joshua voice system online - distorted retro mode', 'color:#0f0; font-weight:bold');
 }
 
 function speak(text) {
-  if (!sam) {
-    console.warn('[SAM] Not ready');
-    return;
-  }
-  try {
-    const words = (text || '' ).toLowerCase().split(' ');
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < words.length) {
-        sam.speak(words[i] + (i % 3 === 0 ? '.' : '' ));
-        i++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 280);
-  } catch(e) {
-    console.error('[SAM] Speak error:', e);
-  }
+  if (!('speechSynthesis' in window)) return;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.pitch = 0.4;
+  utterance.rate = 0.95;
+  utterance.volume = 1.0;
+
+  const voices = speechSynthesis.getVoices();
+  const deepVoice = voices.find(v => v.name.toLowerCase().includes('david') || 
+                                   v.name.toLowerCase().includes('guy') || 
+                                   v.lang.includes('en'));
+  if (deepVoice) utterance.voice = deepVoice;
+
+  speechSynthesis.speak(utterance);
 }
 
-window.addEventListener('load', () => setTimeout(initSAM, 400));
+window.addEventListener('load', () => {
+  setTimeout(initWOPRVoice, 500);
+  speechSynthesis.onvoiceschanged = () => {};
+});
 </script>
 <script>
 <script src="sam.js"></script>
 <script>
 <script src="sam.js"></script>
 <script>
-// ── WOPR VOICE (SAM) ───────────────────────────────────────────────
-let sam = null;
+<script>
+// ── WOPR / JOSHUA VOICE (Modern Distorted TTS) ─────────────────────
+let audioContext;
 
-function initSAM() {
-  try {
-    const SamConstructor = window.SamJs || window.samJs || SamJs;
-    if (SamConstructor) {
-      sam = new SamConstructor({
-        speed: 82,
-        pitch: 48,
-        throat: 110,
-        mouth: 105
-      });
-      console.log('%c✅ [SAM] WOPR voice tuned - closer to Joshua', 'color:#0f0; font-weight:bold');
-    } else {
-      console.error('❌ [SAM] Constructor not found');
-    }
-  } catch(e) {
-    console.error('❌ [SAM] Init failed:', e);
-  }
+function initWOPRVoice() {
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  console.log('%c✅ [WOPR] Joshua voice system online - distorted retro mode', 'color:#0f0; font-weight:bold');
 }
 
 function speak(text) {
-  if (!sam) {
-    console.warn('[SAM] Not ready');
-    return;
-  }
-  try {
-    const words = (text || '' ).toLowerCase().split(' ');
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < words.length) {
-        sam.speak(words[i] + (i % 3 === 0 ? '.' : '' ));
-        i++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 280);
-  } catch(e) {
-    console.error('[SAM] Speak error:', e);
-  }
+  if (!('speechSynthesis' in window)) return;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.pitch = 0.4;
+  utterance.rate = 0.95;
+  utterance.volume = 1.0;
+
+  const voices = speechSynthesis.getVoices();
+  const deepVoice = voices.find(v => v.name.toLowerCase().includes('david') || 
+                                   v.name.toLowerCase().includes('guy') || 
+                                   v.lang.includes('en'));
+  if (deepVoice) utterance.voice = deepVoice;
+
+  speechSynthesis.speak(utterance);
 }
 
-window.addEventListener('load', () => setTimeout(initSAM, 400));
+window.addEventListener('load', () => {
+  setTimeout(initWOPRVoice, 500);
+  speechSynthesis.onvoiceschanged = () => {};
+});
 </script>
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
