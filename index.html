@@ -233,7 +233,7 @@ function getCtx(){
 function playModem(){
   return new Promise(resolve=>{
     try{
-      const audio=new Audio('audio/Dialling.mp3');
+      const audio=new Audio('audio/Dial.mp3');
       audio.volume=1.0;
       audio.onended=()=>resolve();
       audio.onerror=()=>resolve(); // if file missing, carry on anyway
