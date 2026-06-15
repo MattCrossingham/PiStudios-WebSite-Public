@@ -271,11 +271,11 @@ async function runDialSequence(){
   // MP3 done — show connection established
   connLine.innerHTML='CONNECTING... <span style="color:var(--cyan)">OK</span>';
   await sl(300);
-  addDialLine('CONNECTION ESTABLISHED','ok');
+  addDialLine('CONNECTION ESTABLISHED','ok'); speak('CONNECTION ESTABLISHED');
   await sl(500);
-  addDialLine('W.O.F.T.R. MAINFRAME ONLINE','ok');
+  addDialLine('W.O.F.T.R. MAINFRAME ONLINE','ok'); speak('W.O.F.T.R. MAINFRAME ONLINE');
   await sl(400);
-  addDialLine('ENCRYPTION: ACTIVE','ok');
+  addDialLine('ENCRYPTION: ACTIVE','ok'); speak('ENCRYPTION ACTIVE');
   await sl(700);
 
   // reveal name prompt
