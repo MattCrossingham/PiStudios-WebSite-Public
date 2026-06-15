@@ -282,42 +282,6 @@ function initSAM() {
   }
 }
 
-function speak(text) {
-  if (!sam) {
-    console.warn('[SAM] Not ready - skipping voice');
-    return;
-  }
-  try {
-    sam.speak((text || '' ).toLowerCase());
-  } catch(e) {
-    console.error('[SAM] Speak error:', e);
-  }
-}
-
-window.addEventListener('load', () => setTimeout(initSAM, 400));
-</script>
-<script>
-// ── AUDIO ─────────────────────────────────────────────────────
-let audioCtx;
-function getCtx(){
-  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-  return audioCtx;
-}
-
-// ── MODEM DIAL-IN SOUND ──────────────────────────────────────
-// Plays the real dial-up MP3. Returns a promise that resolves
-// when the audio finishes so the sequence can wait on it.
-
-// ── DIAL-IN SEQUENCE ───────────────────────────────────────────
-const dialLog=document.getElementById('dial-log');
-function addDialLine(text,cls=''){
-  const d=document.createElement('div');
-  d.className='line '+(cls||'');
-  d.textContent=text;
-  dialLog.appendChild(d);
-  return d;
-}
-
 // Browsers block AudioContext until a user gesture.
 // Strategy: show CONNECTING... dots on load (no sound).
 // The moment user presses ANY key, unlock audio and run
