@@ -246,7 +246,6 @@ function addDialLine(text,cls=''){
 // The moment user presses ANY key, unlock audio and run
 // the full modem sequence. Feels natural — like pressing
 // a key to initiate the call.
-let audioUnlocked = false;
 let connLine = null;
 
 async function runDialSequence(){
@@ -280,14 +279,8 @@ window.addEventListener('load', ()=>{
     connLine.innerHTML='CONNECTING<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
     dialLog.appendChild(connLine);
 
-    // first keypress anywhere unlocks audio and starts the full sequence
-    window.addEventListener('keydown', ()=>{
-      if(!audioUnlocked) runDialSequence();
-    }, {once:true});
-
-    // also unlock on click/tap for mobile
     window.addEventListener('pointerdown', ()=>{
-      if(!audioUnlocked) runDialSequence();
+      runDialSequence();
     }, {once:true});
   }, 300);
 });
