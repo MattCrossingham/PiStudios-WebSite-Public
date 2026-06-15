@@ -348,10 +348,6 @@ function pickVoice(){
 pickVoice();
 window.speechSynthesis.onvoiceschanged=pickVoice;
 
-// ── WOPR SPEAK ───────────────────────────────────────────────
-// Words chained via onend — never queued — so phrases can't be cut off.
-// Pitch oscillates per word via sine wave for the WOPR rise/fall effect.
-let _speaking=false;
 
 // ── UTILS ─────────────────────────────────────────────────────
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
