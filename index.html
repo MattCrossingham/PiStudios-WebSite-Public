@@ -311,6 +311,30 @@ document.querySelectorAll('input').forEach(i=>{
 
 // ── WOPR VOICE ────────────────────────────────────────────────
 let woprVoice=null;
+let _speaking=false;
+function speak(text){
+  try{
+    if(!_speaking) window.speechSynthesis.cancel();
+    const clean=text.toLowerCase().replace(/[—–]/g,' ').replace(/[.,!?;:]/g,'').trim();
+    const words=clean.split(/\s+/).filter(Boolean);
+    if(!words.length) return;
+    _speaking=true;
+    let i=0;
+    function chain(){
+      if(i>=words.length){ _speaking=false; return; }
+      const idx=i; i++;
+      const u=new SpeechSynthesisUtterance(words[idx]);
+      if(woprVoice) u.voice=woprVoice;
+      u.rate=0.9;
+      u.volume=1.0;
+      u.pitch=0.6+Math.sin(idx*2.2)*0.35;
+      u.onend=chain;
+      u.onerror=chain;
+      window.speechSynthesis.speak(u);
+    }
+    chain();
+  }catch(e){ _speaking=false; }
+}
 function pickVoice(){
   const voices=window.speechSynthesis.getVoices();
   if(!voices.length) return;
@@ -328,17 +352,6 @@ window.speechSynthesis.onvoiceschanged=pickVoice;
 // Words chained via onend — never queued — so phrases can't be cut off.
 // Pitch oscillates per word via sine wave for the WOPR rise/fall effect.
 let _speaking=false;
-function speak(text){
-  try{
-    window.speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    if(woprVoice) u.voice=woprVoice;
-    u.rate=0.9;
-    u.pitch=0.65;
-    u.volume=1.0;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
-}
 
 // ── UTILS ─────────────────────────────────────────────────────
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
