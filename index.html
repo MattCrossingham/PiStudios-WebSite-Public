@@ -270,7 +270,7 @@ async function runDialSequence(){
   document.getElementById('name-input').focus();
 }
 
-// On load: show the flashing dots and wait for first keypress to unlock audio
+// On load: show flashing dots then auto-start sequence
 window.addEventListener('load', ()=>{
   setTimeout(()=>{
     // show dots immediately — no sound yet
@@ -278,6 +278,7 @@ window.addEventListener('load', ()=>{
     connLine.className='line';
     connLine.innerHTML='CONNECTING<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
     dialLog.appendChild(connLine);
+    setTimeout(runDialSequence, 600);
 
     window.addEventListener('pointerdown', ()=>{
       runDialSequence();
