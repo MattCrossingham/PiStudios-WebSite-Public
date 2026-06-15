@@ -348,14 +348,29 @@ window.speechSynthesis.onvoiceschanged=pickVoice;
 let _speaking=false;
 function speak(text){
   try{
-    window.speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    if(woprVoice) u.voice=woprVoice;
-    u.rate=0.95;
-    u.pitch=0.6;
-    u.volume=0.95;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
+    if(!_speaking) window.speechSynthesis.cancel();
+    const clean=text.toLowerCase()
+      .replace(/[—–]/g,' ')
+      .replace(/[.,!?;:]/g,'')
+      .trim();
+    const words=clean.split(/\s+/).filter(Boolean);
+    if(!words.length) return;
+    _speaking=true;
+    let i=0;
+    function chain(){
+      if(i>=words.length){ _speaking=false; return; }
+      const idx=i; i++;
+      const u=new SpeechSynthesisUtterance(words[idx]);
+      if(woprVoice) u.voice=woprVoice;
+      u.rate=0.9;
+      u.volume=1.0;
+      u.pitch=0.75+Math.sin(idx*0.9)*0.25;
+      u.onend=chain;
+      u.onerror=chain;
+      window.speechSynthesis.speak(u);
+    }
+    chain();
+  }catch(e){ _speaking=false; }
 }
 
 // ── UTILS ─────────────────────────────────────────────────────
