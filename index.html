@@ -242,7 +242,7 @@ function speak(text) {
       if (woprVoice) u.voice = woprVoice;
       u.rate = 0.9;
       u.volume = 1.0;
-      u.pitch = 0.45 + Math.sin(idx * 2.4) * 0.5;
+      u.pitch = 0.4 + Math.sin(idx * 2.4) * 0.25;
       u.onend = chain;
       u.onerror = chain;
       window.speechSynthesis.speak(u);
@@ -311,7 +311,7 @@ function speak(text) {
       if (woprVoice) u.voice = woprVoice;
       u.rate = 0.9;
       u.volume = 1.0;
-      u.pitch = 0.45 + Math.sin(idx * 2.4) * 0.5;
+      u.pitch = 0.4 + Math.sin(idx * 2.4) * 0.25;
       u.onend = chain;
       u.onerror = chain;
       window.speechSynthesis.speak(u);
