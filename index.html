@@ -508,6 +508,9 @@ const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
 function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
 
 async function launchGame(cmd){
+  if (cmd.toUpperCase().includes('GLOBAL') || cmd.toUpperCase().includes('THERMONUCLEAR')) {
+    return handleGTW(cmd);
+  }
   if(isTTT(cmd)){
     gameResponse.textContent='';
     await typeText(gameResponse,'...', 80);
