@@ -221,6 +221,34 @@ input[type="text"] {
 
 <script src="https://cdn.jsdelivr.net/npm/sam-js@0.2.1/dist/samjs.umd.js"></script>
 <script>
+let sam = null;
+function initSAM() {
+  try {
+    sam = new SamJs({
+      speed:  70,
+      pitch:  60,
+      mouth:  150,
+      throat: 150
+    });
+    console.log('%c[SAM] WOPR voice initialized', 'color:#0ff');
+  } catch(e) {
+    console.error('[SAM] Failed to initialize:', e);
+  }
+}
+function speak(text) {
+  if (!sam) {
+    console.warn('[SAM] Not initialized');
+    return;
+  }
+  try {
+    sam.speak(text.toLowerCase());
+  } catch(e) {
+    console.error('[SAM] speak error:', e);
+  }
+}
+window.addEventListener('load', initSAM);
+</script>
+<script>
 // ── AUDIO ─────────────────────────────────────────────────────
 let audioCtx;
 function getCtx(){
