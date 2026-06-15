@@ -490,17 +490,17 @@ menuInput.addEventListener('keypress',async e=>{
 // ── GAME ROUTING ──────────────────────────────────────────────
 // each entry: [matcher fn, page, spoken line]
 const GAME_ROUTES=[
-  [c=>c.includes('CHECKERS'),                         'checkers.html',                              'Loading checkers.'],
-  [c=>c.includes('CHESS'),                            'chess.html',                                 'A fine choice.'],
-  [c=>c.includes('BACKGAMMON'),                       'backgammon.html',                            'Loading backgammon.'],
-  [c=>c.includes('POKER'),                            'poker.html',                                 'Loading poker.'],
-  [c=>c.includes('FIGHTER'),                          'fighter-combat.html',                        'Initializing fighter combat.'],
-  [c=>c.includes('GUERRILLA'),                        'guerrilla-engagement.html',                  'Initializing guerrilla engagement.'],
-  [c=>c.includes('DESERT'),                           'desert-warfare.html',                        'Initializing desert warfare.'],
-  [c=>c.includes('AIR'),                              'air-to-ground-actions.html',                 'Initializing air to ground actions.'],
-  [c=>c.includes('BIOTOXIC')||c.includes('CHEMICAL'), 'theaterwide-biotoxic-and-chemical-warfare.html','Initializing chemical warfare.'],
-  [c=>c.includes('TACTICAL')||c.includes('THEATERWIDE'),'theaterwide-tactical-warfare.html',        'Initializing theaterwide tactical warfare.'],
-  [c=>c.includes('GLOBAL')||c.includes('THERMONUCLEAR')||c==='GTW','global-thermonuclear-war.html','Initializing global thermonuclear war.'],
+  [c=>c.includes('CHECKERS'),                         'games/checkers.html',                              'Loading checkers.'],
+  [c=>c.includes('CHESS'),                            'games/chess.html',                                 'A fine choice.'],
+  [c=>c.includes('BACKGAMMON'),                       'games/backgammon.html',                            'Loading backgammon.'],
+  [c=>c.includes('POKER'),                            'games/poker.html',                                 'Loading poker.'],
+  [c=>c.includes('FIGHTER'),                          'games/fighter-combat.html',                        'Initializing fighter combat.'],
+  [c=>c.includes('GUERRILLA'),                        'games/guerrilla-engagement.html',                  'Initializing guerrilla engagement.'],
+  [c=>c.includes('DESERT'),                           'games/desert-warfare.html',                        'Initializing desert warfare.'],
+  [c=>c.includes('AIR'),                              'games/air-to-ground-actions.html',                 'Initializing air to ground actions.'],
+  [c=>c.includes('BIOTOXIC')||c.includes('CHEMICAL'), 'games/theaterwide-biotoxic-and-chemical-warfare.html','Initializing chemical warfare.'],
+  [c=>c.includes('TACTICAL')||c.includes('THEATERWIDE'),'games/theaterwide-tactical-warfare.html',        'Initializing theaterwide tactical warfare.'],
+  [c=>c.includes('GLOBAL')||c.includes('THERMONUCLEAR')||c==='GTW','games/global-thermonuclear-war.html','Initializing global thermonuclear war.'],
 ];
 
 // ── SECRET: Tic-Tac-Toe ──────────────────────────────
@@ -522,7 +522,7 @@ async function launchGame(cmd){
     gameResponse.textContent='';
     await typeText(gameResponse,'ACCESSING...', 55);
     await sleep(800);
-    window.location.href='tic-tac-toe.html';
+    window.location.href='games/tic-tac-toe.html';
     return;
   }
   const route=GAME_ROUTES.find(([m])=>m(cmd));
