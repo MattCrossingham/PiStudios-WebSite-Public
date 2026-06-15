@@ -260,19 +260,6 @@ pickVoice();
 </div>
 
 
-  if (!voices.length) return;
-  const prefer = ["Microsoft David", "Google UK English Male", "Daniel", "Microsoft Mark", "Fred", "Google US English", "Albert"];
-  for (const name of prefer) {
-    const v = voices.find(x => x.name.includes(name));
-    if (v) { woprVoice = v; return; }
-  }
-  woprVoice = voices.find(v => /en[-_]/i.test(v.lang)) || voices[0];
-}
-
-
-window.speechSynthesis.onvoiceschanged = pickVoice;
-pickVoice();
-</script>
 // ── WOPR VOICE (SAM) ───────────────────────────────────────────────
 
 
