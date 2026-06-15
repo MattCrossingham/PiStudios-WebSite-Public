@@ -219,7 +219,83 @@ input[type="text"] {
 </div>
 
 
+<script src="sam.js"></script>
 <script>
+// ── WOPR VOICE (SAM) ───────────────────────────────────────────────
+let sam = null;
+
+function initSAM() {
+  try {
+    const SamConstructor = window.SamJs || window.samJs || SamJs;
+    if (SamConstructor) {
+      sam = new SamConstructor({
+        speed: 72,
+        pitch: 64,
+        throat: 128,
+        mouth: 128
+      });
+      console.log('%c✅ [SAM] WOPR voice initialized - crunchy 80s robot', 'color:#0f0; font-weight:bold');
+    } else {
+      console.error('❌ [SAM] SamJs constructor not found');
+    }
+  } catch(e) {
+    console.error('❌ [SAM] Init failed:', e);
+  }
+}
+
+function speak(text) {
+  if (!sam) {
+    console.warn('[SAM] Not ready - skipping voice');
+    return;
+  }
+  try {
+    sam.speak((text || '' ).toLowerCase());
+  } catch(e) {
+    console.error('[SAM] Speak error:', e);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(initSAM, 400));
+</script>
+<script>
+<script src="sam.js"></script>
+<script>
+// ── WOPR VOICE (SAM) ───────────────────────────────────────────────
+let sam = null;
+
+function initSAM() {
+  try {
+    const SamConstructor = window.SamJs || window.samJs || SamJs;
+    if (SamConstructor) {
+      sam = new SamConstructor({
+        speed: 72,
+        pitch: 64,
+        throat: 128,
+        mouth: 128
+      });
+      console.log('%c✅ [SAM] WOPR voice initialized - crunchy 80s robot', 'color:#0f0; font-weight:bold');
+    } else {
+      console.error('❌ [SAM] SamJs constructor not found');
+    }
+  } catch(e) {
+    console.error('❌ [SAM] Init failed:', e);
+  }
+}
+
+function speak(text) {
+  if (!sam) {
+    console.warn('[SAM] Not ready - skipping voice');
+    return;
+  }
+  try {
+    sam.speak((text || '' ).toLowerCase());
+  } catch(e) {
+    console.error('[SAM] Speak error:', e);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(initSAM, 400));
+</script>
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
 let audioCtx;
@@ -455,53 +531,7 @@ const GAME_ROUTES=[
 const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
 function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
 
-let gtwStep = 0;
-async function handleGlobalThermonuclearWar(cmd) {
-  const v = cmd.toUpperCase().trim();
-  if (gtwStep === 0) {
-    gameResponse.textContent = "";
-    await typeText(gameResponse, "HOW ABOUT A NICE GAME OF CHESS?", 55);
-    speak("How about a nice game of chess?");
-    gtwStep = 1;
-    return true;
-  }
-  if (gtwStep === 1) {
-    if (v.includes("NO") || v.includes("THERMONUCLEAR") || v.includes("GLOBAL")) {
-      gameResponse.textContent = "";
-      await typeText(gameResponse, "WHICH SIDE DO YOU WANT?", 55);
-      speak("Which side do you want?");
-      await sleep(600);
-      await typeText(gameResponse, "1. UNITED STATES", 40);
-      await typeText(gameResponse, "2. SOVIET UNION", 40);
-      gtwStep = 2;
-      return true;
-    } else {
-      gtwStep = 0;
-      window.location.href = "games/global-thermonuclear-war.html";
-      return true;
-    }
-  }
-  if (gtwStep === 2) {
-    let side = null;
-    if (v === "1" || v.includes("US") || v.includes("UNITED") || v.includes("AMERICA")) side = "US";
-    if (v === "2" || v.includes("USSR") || v.includes("SOVIET") || v.includes("RUSSIA")) side = "USSR";
-    if (side) {
-      localStorage.setItem("gtw_side", side);
-      gtwStep = 0;
-      window.location.href = "games/global-thermonuclear-war.html";
-      return true;
-    } else {
-      await typeText(gameResponse, "PLEASE CHOOSE 1 OR 2", 50);
-      return true;
-    }
-  }
-  return false;
-}
 async function launchGame(cmd){
-  const up = cmd.toUpperCase();
-  if (up.includes('GLOBAL') || up.includes('THERMONUCLEAR')) {
-    return handleGlobalThermonuclearWar(cmd);
-  }
   if(isTTT(cmd)){
     gameResponse.textContent='';
     await typeText(gameResponse,'...', 80);
