@@ -267,57 +267,6 @@ pickVoice();
 // ── WOPR / JOSHUA VOICE (Web Speech) ─────────────────────────────────────
 <script>
 // ── WOPR / JOSHUA VOICE (Web Speech) ─────────────────────────────────────
-let woprVoice = null;
-
-function pickVoice() {
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices.length) return;
-  const prefer = ["Microsoft David", "Google UK English Male", "Daniel", "Microsoft Mark", "Fred", "Google US English", "Albert"];
-  for (const name of prefer) {
-    const v = voices.find(x => x.name.includes(name));
-    if (v) { woprVoice = v; return; }
-  }
-  woprVoice = voices.find(v => /en[-_]/i.test(v.lang)) || voices[0];
-}
-
-function speak(text) {
-  try {
-    window.speechSynthesis.cancel();
-    const clean = text.toLowerCase().replace(/[—–]/g, " ").replace(/[.,!?;:]/g, "").trim();
-    const words = clean.split(/\s+/).filter(Boolean);
-    if (!words.length) return;
-    let i = 0;
-    function chain() {
-      if (i >= words.length) return;
-      const idx = i++;
-      const u = new SpeechSynthesisUtterance(words[idx]);
-      if (woprVoice) u.voice = woprVoice;
-      u.rate = 1.6;
-      u.volume = 1.0;
-      u.pitch = 0.4 + Math.sin(idx * 0.8) * 0.08;
-      u.onend = chain;
-      u.onerror = chain;
-      window.speechSynthesis.speak(u);
-    }
-    chain();
-  } catch(e) {}
-}
-
-window.speechSynthesis.onvoiceschanged = pickVoice;
-pickVoice();
-</script>
-let woprVoice = null;
-
-function pickVoice() {
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices.length) return;
-  const prefer = ["Microsoft David", "Google UK English Male", "Daniel", "Microsoft Mark", "Fred", "Google US English", "Albert"];
-  for (const name of prefer) {
-    const v = voices.find(x => x.name.includes(name));
-    if (v) { woprVoice = v; return; }
-  }
-  woprVoice = voices.find(v => /en[-_]/i.test(v.lang)) || voices[0];
-}
 
 
 window.speechSynthesis.onvoiceschanged = pickVoice;
