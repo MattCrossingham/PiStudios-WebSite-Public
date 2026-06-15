@@ -233,7 +233,7 @@ function getCtx(){
 function playModem(){
   return new Promise(resolve=>{
     try{
-      const audio=new Audio('audio/Dial.mp3');
+      const audio=new Audio('audio/Dialling.mp3');
       audio.volume=1.0;
       audio.onended=()=>resolve();
       audio.onerror=()=>resolve(); // if file missing, carry on anyway
@@ -267,7 +267,6 @@ async function runDialSequence(){
 
   // play the real dial-up MP3 and wait for it to finish
   await playModem();
-  speak('CONNECTION ESTABLISHED');
 
   // MP3 done — show connection established
   connLine.innerHTML='CONNECTING... <span style="color:var(--cyan)">OK</span>';
