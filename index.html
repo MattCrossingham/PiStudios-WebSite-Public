@@ -219,17 +219,19 @@ input[type="text"] {
 </div>
 
 
-<script src="sam.js"></script>
+<script src="samjs.js"></script>
 <script>
 <script>
-<script src="sam.js"></script>
+<script src="samjs.js"></script>
+<script>
+<script src="samjs.js"></script>
 <script>
 // ── WOPR VOICE (SAM) ───────────────────────────────────────────────
 let sam = null;
 
 function initSAM() {
   try {
-    const SamConstructor = window.SamJs || SamJs;
+    const SamConstructor = window.SamJs || window.samJs || SamJs;
     if (SamConstructor) {
       sam = new SamConstructor({
         speed: 72,
@@ -258,7 +260,7 @@ function speak(text) {
   }
 }
 
-window.addEventListener('load', () => setTimeout(initSAM, 300));
+window.addEventListener('load', () => setTimeout(initSAM, 400));
 </script>
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
