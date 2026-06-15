@@ -278,10 +278,7 @@ window.addEventListener('load', ()=>{
     connLine.className='line';
     connLine.innerHTML='CONNECTING<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
     dialLog.appendChild(connLine);
-    setTimeout(runDialSequence, 600);
-
-      runDialSequence();
-    }, {once:true});
+    setTimeout(runDialSequence, 800);
   }, 300);
 });
 
