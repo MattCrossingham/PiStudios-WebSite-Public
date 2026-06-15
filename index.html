@@ -507,6 +507,48 @@ const GAME_ROUTES=[
 const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
 function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
 
+let gtwState = null;
+async function handleGTW(cmd) {
+  const v = cmd.toUpperCase();
+  if (!gtwState) {
+    gameResponse.textContent = "";
+    await typeText(gameResponse, "HOW ABOUT A NICE GAME OF CHESS?", 55);
+    speak("How about a nice game of chess?");
+    gtwState = "chess";
+    return true;
+  }
+  if (gtwState === "chess") {
+    if (v.includes("NO") || v.includes("THERMONUCLEAR") || v.includes("GLOBAL")) {
+      gameResponse.textContent = "";
+      await typeText(gameResponse, "WHICH SIDE DO YOU WANT?", 55);
+      speak("Which side do you want?");
+      await sleep(800);
+      await typeText(gameResponse, "1. UNITED STATES", 40);
+      await typeText(gameResponse, "2. SOVIET UNION", 40);
+      gtwState = "side";
+      return true;
+    } else {
+      gtwState = null;
+      window.location.href = "games/global-thermonuclear-war.html";
+      return true;
+    }
+  }
+  if (gtwState === "side") {
+    let side = null;
+    if (v === "1" || v.includes("US") || v.includes("UNITED") || v.includes("AMERICA")) side = "US";
+    if (v === "2" || v.includes("USSR") || v.includes("SOVIET") || v.includes("RUSSIA")) side = "USSR";
+    if (side) {
+      localStorage.setItem("gtw_side", side);
+      gtwState = null;
+      window.location.href = "games/global-thermonuclear-war.html";
+      return true;
+    } else {
+      await typeText(gameResponse, "PLEASE CHOOSE 1 OR 2", 50);
+      return true;
+    }
+  }
+  return false;
+}
 async function launchGame(cmd){
   if (cmd.toUpperCase().includes('GLOBAL') || cmd.toUpperCase().includes('THERMONUCLEAR')) {
     return handleGTW(cmd);
