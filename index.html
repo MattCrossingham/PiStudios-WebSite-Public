@@ -219,7 +219,7 @@ input[type="text"] {
 </div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/sam-js@0.2.1/dist/sam.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sam-js@0.2.1/dist/samjs.umd.js"></script>
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
 let audioCtx;
@@ -389,7 +389,6 @@ nameInput.addEventListener('keypress',async e=>{
   idConfirmed.classList.remove('hidden');
   // cancel any leftover queued speech (key click sounds etc.) then wait
   // a beat so the synth engine is fully clear before speaking the full phrase
-  window.speechSynthesis.cancel();
   await sleep(300);
   // speak as a single utterance — not word-by-word — so it can't be cut off mid-phrase
   try {
@@ -400,7 +399,6 @@ nameInput.addEventListener('keypress',async e=>{
   pwScreen.classList.add('hidden');
   mainMenu.classList.remove('hidden');
   greetingLine.textContent=`GREETINGS, ${userName}.`;
-  window.speechSynthesis.cancel();
   await sleep(200);
   try {
     speak('Greetings ' + userName + '.');
