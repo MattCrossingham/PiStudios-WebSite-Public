@@ -41,25 +41,6 @@ body::before {
 }
 
 body::after {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: repeating-linear-gradient(
-                transparent,
-                transparent 3px,
-                rgba(0, 255, 255, 0.05) 3px,
-                rgba(0, 255, 255, 0.05) 6px
-            );
-            pointer-events: none;
-            z-index: 9999;
-        }
-        .blink-dots {
-            animation: blink-dots 0.8s step-end infinite;
-        }
-        @keyframes blink-dots {
-            50% { opacity: 0; }
-        }
-
   content: '';
   position: fixed;
   inset: 0;
@@ -152,33 +133,38 @@ input[type="text"] {
 
 .hidden { display: none !important; }
 
-/* sound prompt */
-#sound-note {
-  position: fixed;
-  bottom: 14px; right: 16px;
-  font-size: 0.7em;
-  color: rgba(0,255,255,0.35);
-  text-shadow: none;
-  z-index: 9999;
-  letter-spacing: 0.05em;
+/* dial-in dot flash */
+@keyframes dotflash {
+  0%,100%{ opacity:1; } 50%{ opacity:0.15; }
 }
+.dot { animation: dotflash 0.45s step-end infinite; }
+.dot:nth-child(2){ animation-delay:0.15s; }
+.dot:nth-child(3){ animation-delay:0.30s; }
+#dial-log .line { color: var(--cyan-dim); text-shadow:none; font-size:0.9em; }
+#dial-log .line.ok { color: var(--cyan); text-shadow: 0 0 6px var(--cyan-dim); }
+
+
 </style>
 </head>
 <body>
 <div class="console">
 
   <!-- NAME ENTRY -->
-  <div id="name-screen" class="hidden">
-    <div class="line muted">CONNECTING...</div>
-    <div class="line muted">CONNECTION ESTABLISHED</div>
-    <div class="spacer"></div>
-    <div class="line bold">GREETINGS.</div>
-    <div class="line">PLEASE ENTER YOUR NAME.</div>
-    <div class="input-row">
-      <span class="prompt">&gt;</span>
-      <div class="input-wrap">
-        <input type="text" id="name-input" autofocus autocomplete="off" spellcheck="false">
-        <span class="cursor" id="name-cursor"></span>
+  <div id="name-screen">
+    <div id="dial-log"></div>
+    <div id="name-prompt" class="hidden">
+      <div class="spacer"></div>
+      <div class="line bold">W.O.F.T.R.</div>
+      <div class="line muted" style="font-size:0.75em;letter-spacing:0.1em;">WEAPONISED OPERATIONS &amp; FILM TECHNOLOGY RESPONSE</div>
+      <div class="line muted" style="font-size:0.7em;letter-spacing:0.08em;margin-bottom:0.6em;">CLASSIFICATION: TOP SECRET &nbsp;|&nbsp; PI STUDIOS COMMAND CENTRE</div>
+      <hr class="divider">
+      <div class="line">PLEASE ENTER YOUR NAME.</div>
+      <div class="input-row">
+        <span class="prompt">&gt;</span>
+        <div class="input-wrap">
+          <input type="text" id="name-input" autocomplete="off" spellcheck="false">
+          <span class="cursor" id="name-cursor"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -215,7 +201,8 @@ input[type="text"] {
 
   <!-- GAMES SCREEN -->
   <div id="games-screen" class="hidden">
-    <div class="line muted">ACCESSING W.O.F.T.R....</div>
+    <div class="line muted">ACCESSING WOFTR...</div>
+    <div class="line bold" style="margin-top:0.4em;">SHALL WE PLAY A GAME?</div>
     <hr class="divider">
     <div id="games-items-container"></div>
     <div class="input-row">
@@ -230,7 +217,7 @@ input[type="text"] {
   </div>
 
 </div>
-<div id="sound-note">PRESS ANY KEY TO ENABLE SOUND</div>
+
 
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
@@ -239,6 +226,84 @@ function getCtx(){
   if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   return audioCtx;
 }
+
+// ── MODEM DIAL-IN SOUND ──────────────────────────────────────
+// Plays the real dial-up MP3. Returns a promise that resolves
+// when the audio finishes so the sequence can wait on it.
+function playModem(){
+  return new Promise(resolve=>{
+    try{
+      const audio=new Audio('audio/Dialling.mp3');
+      audio.volume=1.0;
+      audio.onended=()=>resolve();
+      audio.onerror=()=>resolve(); // if file missing, carry on anyway
+      audio.play().catch(()=>resolve());
+    }catch(e){ resolve(); }
+  });
+}
+
+// ── DIAL-IN SEQUENCE ───────────────────────────────────────────
+const dialLog=document.getElementById('dial-log');
+function addDialLine(text,cls=''){
+  const d=document.createElement('div');
+  d.className='line '+(cls||'');
+  d.textContent=text;
+  dialLog.appendChild(d);
+  return d;
+}
+
+// Browsers block AudioContext until a user gesture.
+// Strategy: show CONNECTING... dots on load (no sound).
+// The moment user presses ANY key, unlock audio and run
+// the full modem sequence. Feels natural — like pressing
+// a key to initiate the call.
+let audioUnlocked = false;
+let connLine = null;
+
+async function runDialSequence(){
+  const sl=ms=>new Promise(r=>setTimeout(r,ms));
+
+  audioUnlocked=true;
+
+  // play the real dial-up MP3 and wait for it to finish
+  await playModem();
+
+  // MP3 done — show connection established
+  connLine.innerHTML='CONNECTING... <span style="color:var(--cyan)">OK</span>';
+  await sl(300);
+  addDialLine('CONNECTION ESTABLISHED','ok');
+  await sl(500);
+  addDialLine('W.O.F.T.R. MAINFRAME ONLINE','ok');
+  await sl(400);
+  addDialLine('ENCRYPTION: ACTIVE','ok');
+  await sl(700);
+
+  // reveal name prompt
+  document.getElementById('name-prompt').classList.remove('hidden');
+  document.getElementById('name-input').focus();
+}
+
+// On load: show the flashing dots and wait for first keypress to unlock audio
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    // show dots immediately — no sound yet
+    connLine = document.createElement('div');
+    connLine.className='line';
+    connLine.innerHTML='CONNECTING<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+    dialLog.appendChild(connLine);
+
+    // first keypress anywhere unlocks audio and starts the full sequence
+    window.addEventListener('keydown', ()=>{
+      if(!audioUnlocked) runDialSequence();
+    }, {once:true});
+
+    // also unlock on click/tap for mobile
+    window.addEventListener('pointerdown', ()=>{
+      if(!audioUnlocked) runDialSequence();
+    }, {once:true});
+  }, 300);
+});
+
 function playKeyClick(){
   try{
     const ctx=getCtx(),osc=ctx.createOscillator(),gain=ctx.createGain(),flt=ctx.createBiquadFilter();
@@ -250,19 +315,7 @@ function playKeyClick(){
     gain.gain.linearRampToValueAtTime(0.001,ctx.currentTime+d);
   }catch(e){}
 }
-function startHum(){
-  try{
-    const ctx=getCtx(),osc=ctx.createOscillator(),gain=ctx.createGain(),flt=ctx.createBiquadFilter();
-    osc.type='sine';osc.frequency.value=78;
-    flt.type='lowpass';flt.frequency.value=350;gain.gain.value=0.005;
-    osc.connect(flt);flt.connect(gain);gain.connect(ctx.destination);osc.start();
-  }catch(e){}
-}
-document.addEventListener('keydown',()=>{
-  startHum();
-  const note=document.getElementById('sound-note');
-  if(note) note.style.display='none';
-},{once:true});
+// modem sound auto-starts on load — no manual unlock needed
 document.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',playKeyClick));
 
 // ── AUTO-SIZE INPUTS (monospace = 1 char ≈ 1ch) ───────────────
@@ -289,21 +342,7 @@ function pickVoice(){
 pickVoice();
 window.speechSynthesis.onvoiceschanged=pickVoice;
 
-function speak(text){
-  try{
-    window.speechSynthesis.cancel();
-    // flat, monotone, clipped delivery — cold and machine-like
-    const words=text.toLowerCase().replace(/[—]/g,' ').split(/\s+/).filter(Boolean);
-    for(const word of words){
-      const u=new SpeechSynthesisUtterance(word);
-      if(woprVoice) u.voice=woprVoice;
-      u.rate=1.33;        // brisk but clipped, one word at a time
-      u.pitch=0.3;        // constant low pitch = no inflection
-      u.volume=0.9;
-      window.speechSynthesis.speak(u);
-    }
-  }catch(e){}
-}
+// speak() is defined in woftr.js — single utterance with pitch oscillation
 
 // ── UTILS ─────────────────────────────────────────────────────
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -383,13 +422,24 @@ nameInput.addEventListener('keypress',async e=>{
   await sleep(450);
   pwCursor.style.display='none';
   idConfirmed.classList.remove('hidden');
-  speak('Identification confirmed.');
-  await sleep(1400);
+  // cancel any leftover queued speech (key click sounds etc.) then wait
+  // a beat so the synth engine is fully clear before speaking the full phrase
+  window.speechSynthesis.cancel();
+  await sleep(300);
+  // speak as a single utterance — not word-by-word — so it can't be cut off mid-phrase
+  try {
+    speak('Identification confirmed.');
+  } catch(e) {}
+  await sleep(1600);
 
   pwScreen.classList.add('hidden');
   mainMenu.classList.remove('hidden');
   greetingLine.textContent=`GREETINGS, ${userName}.`;
-  speak(`Greetings ${userName}.`);
+  window.speechSynthesis.cancel();
+  await sleep(200);
+  try {
+    speak('Greetings ' + userName + '.');
+  } catch(e) {}
   await sleep(450);
   await revealItems(document.getElementById('menu-items-container'),MAIN_ITEMS);
   menuInput.focus();
@@ -403,7 +453,7 @@ menuInput.addEventListener('keypress',async e=>{
   if(cmd==='GAMES'){
     mainMenu.classList.add('hidden');
     gamesScreen.classList.remove('hidden');
-    speak('Accessing W.O.F.T.R.');
+    speak('Accessing WOFTR.');
     await sleep(300);
     await revealItems(document.getElementById('games-items-container'),GAME_ITEMS,true);
     gameInput.focus();
@@ -443,24 +493,6 @@ const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
 function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
 
 async function launchGame(cmd){
-  if(cmd.includes("GLOBAL THERMONUCLEAR WAR")){
-    gameResponse.textContent="";
-    await typeText(gameResponse,"HOW ABOUT A NICE GAME OF CHESS?",55);
-    speak("How about a nice game of chess?");
-    awaitingNoForWar = true;
-    return;
-  }
-  if(awaitingNoForWar && (cmd.includes("NO") || cmd.includes("THERMONUCLEAR"))){
-    awaitingNoForWar = false;
-    const route = GAME_ROUTES.find(([m])=>m("GLOBAL THERMONUCLEAR WAR"));
-    if(route){
-      respond(gameResponse,"LOADING "+route[1].replace(".html","").replace(/-/g," ").toUpperCase()+"...");
-      speak(route[2]);
-      await sleep(900);
-      window.location.href=route[1];
-    }
-    return;
-  }
   if(isTTT(cmd)){
     gameResponse.textContent='';
     await typeText(gameResponse,'...', 80);
@@ -500,50 +532,16 @@ gameInput.addEventListener('keypress',async e=>{
   await launchGame(cmd);
 });
 
-
-window.addEventListener('load', () => {
-  startModemHum();
-
-  const connectingLine = document.querySelector("#name-screen .line.muted");
-  let dots = 0;
-  const dotInterval = setInterval(() => {
-    dots = (dots + 1) % 4;
-    if (connectingLine) connectingLine.textContent = "CONNECTING" + ".".repeat(dots);
-  }, 260);
-
-  setTimeout(() => {
-    clearInterval(dotInterval);
-    if (connectingLine) connectingLine.textContent = "CONNECTION ESTABLISHED";
-    const nameScreen = document.getElementById("name-screen");
-    nameScreen.classList.remove("hidden");
-    document.getElementById("name-input").focus();
-  }, 1850);
+// let players click a game in the list too
+document.getElementById('games-items-container').addEventListener('click',e=>{
+  if(e.target.classList.contains('menu-item')) launchGame(e.target.textContent.toUpperCase());
 });
-
-
-function startModemHum() {
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  const filter = audioCtx.createBiquadFilter();
-
-  osc.type = "sawtooth";
-  osc.frequency.value = 85;
-  filter.type = "lowpass";
-  filter.frequency.value = 420;
-  gain.gain.value = 0.008;
-
-  osc.connect(filter);
-  filter.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-
-  setTimeout(() => {
-    gain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 1.2);
-    osc.stop(audioCtx.currentTime + 1.4);
-  }, 1600);
-}
-
+// and click a main-menu item
+document.getElementById('menu-items-container').addEventListener('click',e=>{
+  if(!e.target.classList.contains('menu-item'))return;
+  const label=e.target.textContent.toUpperCase();
+  menuInput.value=label; const ev=new KeyboardEvent('keypress',{key:'Enter'}); menuInput.dispatchEvent(ev);
+});
 </script>
 </body>
 </html>
