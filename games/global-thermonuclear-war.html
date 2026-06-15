@@ -371,14 +371,6 @@ async function boot(){
   ];
   for(let i=0;i<bl.length;i++) await p(bl[i],'dim',100+i*130);
   await blank(400);
-  await tw('LOGON: ','bright',55,500);
-  await sleep(150); await tw('FALKEN','bright',90);
-  await tw('PASSWORD: \u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022','dim',50,300);
-  await blank(150);
-  await p('IDENTIFICATION CONFIRMED.','bright',700);
-  await p('HELLO, PROFESSOR FALKEN.','cyan',900);
-  await blank(1000);
-  await tw('SHALL WE PLAY A GAME?','bright',55,1100);
   await blank(1200);
   await p('<span class="red blink">\u26a0  GLOBAL THERMONUCLEAR WAR  \u26a0</span>','',1300);
   await p('DEFCON: <span class="red">1</span>  \u2014  NUCLEAR WAR IMMINENT','amber',1500);
