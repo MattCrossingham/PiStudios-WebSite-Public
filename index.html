@@ -487,6 +487,8 @@ const GAME_ROUTES=[
   [c=>c.includes('GLOBAL')||c.includes('THERMONUCLEAR')||c==='GTW','games/global-thermonuclear-war.html','Initializing global thermonuclear war.'],
 ];
 
+let pendingGTW = false;
+
 // ── SECRET: Tic-Tac-Toe ──────────────────────────────
 const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
 function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
@@ -509,6 +511,30 @@ async function launchGame(cmd){
     window.location.href='games/tic-tac-toe.html';
     return;
   }
+
+  // GLOBAL THERMONUCLEAR WAR easter egg
+  if ((cmd.includes('GLOBAL') || cmd.includes('THERMONUCLEAR') || cmd==='GTW') && !pendingGTW) {
+    pendingGTW = true;
+    respond(gameResponse, "WOULDN'T YOU PREFER A NICE GAME OF CHESS?");
+    speak("Wouldn't you prefer a nice game of chess?");
+    return;
+  }
+
+  if (pendingGTW) {
+    if (cmd.includes('NO') && (cmd.includes('GLOBAL') || cmd.includes('THERMONUCLEAR') || cmd.includes('WAR'))) {
+      pendingGTW = false;
+      respond(gameResponse, 'LOADING GLOBAL THERMONUCLEAR WAR...');
+      speak('Initializing global thermonuclear war.');
+      await sleep(900);
+      window.location.href = 'games/global-thermonuclear-war.html';
+      return;
+    } else {
+      pendingGTW = false;
+      respond(gameResponse, 'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.');
+      return;
+    }
+  }
+
   const route=GAME_ROUTES.find(([m])=>m(cmd));
   if(!route){ respond(gameResponse,'A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.'); return; }
   respond(gameResponse,'LOADING '+route[1].replace('.html','').replace(/-/g,' ').toUpperCase()+'...');
