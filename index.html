@@ -494,6 +494,13 @@ const TTT_TRIGGERS=['TIC','TAC','TOE','NOUGHTS','CROSSES','TTT'];
 function isTTT(cmd){ return TTT_TRIGGERS.some(t=>cmd.includes(t)); }
 
 async function launchGame(cmd){
+  // GLOBAL THERMONUCLEAR WAR easter egg (highest priority)
+  if ((cmd.includes('GLOBAL') || cmd.includes('THERMONUCLEAR') || cmd==='GTW') && !pendingGTW) {
+    pendingGTW = true;
+    respond(gameResponse, "WOULDN'T YOU PREFER A NICE GAME OF CHESS?");
+    speak("Wouldn't you prefer a nice game of chess?");
+    return;
+  }
   if(isTTT(cmd)){
     gameResponse.textContent='';
     await typeText(gameResponse,'...', 80);
