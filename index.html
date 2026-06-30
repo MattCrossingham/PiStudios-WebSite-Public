@@ -233,6 +233,7 @@ function pickVoice() {
 
 function speak(text) {
   try {
+    if (!woprVoice) pickVoice();
     window.speechSynthesis.cancel();
     const clean = text.toLowerCase().replace(/[—–]/g, " ").replace(/[.,!?;:]/g, "").trim();
     const words = clean.split(/\s+/).filter(Boolean);
