@@ -217,6 +217,7 @@ input[type="text"] {
 </div>
 
 <script src="sam.js"></script>
+<script>
 // ── WOPR / JOSHUA VOICE (Web Speech) ─────────────────────────────────────
 let woprVoice = null;
 
@@ -257,6 +258,7 @@ function speak(text) {
 
 window.speechSynthesis.onvoiceschanged = pickVoice;
 pickVoice();
+</script>
 <script>
 // ── AUDIO ─────────────────────────────────────────────────────
 let audioCtx;
