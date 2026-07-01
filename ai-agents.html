@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOFTR // AI AGENTS</title>
+<style>
+:root {
+  --cyan: #00FFFF;
+  --cyan-dim: rgba(0,255,255,0.4);
+  --bg: #000;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--cyan);
+  font-family: 'Courier New', monospace;
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.5;
+  text-transform: uppercase;
+  overflow-x: hidden;
+}
+body { text-shadow: 0 0 6px var(--cyan), 0 0 14px var(--cyan-dim); }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 3px,
+    rgba(0,255,255,0.03) 3px, rgba(0,255,255,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9997;
+}
+.console {
+  width: min(860px, 94vw);
+  margin: 0 auto;
+  padding: 60px 20px 80px;
+  min-height: 100vh;
+}
+.line { margin-bottom: 4px; letter-spacing: 0.03em; }
+.line.muted { color: var(--cyan-dim); text-shadow: none; }
+.line.bold { letter-spacing: 0.08em; }
+.agent {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,255,255,0.2);
+  cursor: pointer;
+}
+.agent:hover { color: #fff; text-shadow: 0 0 8px #fff, 0 0 20px var(--cyan); }
+.agent.selected {
+  color: #fff;
+  text-shadow: 0 0 10px var(--cyan), 0 0 24px var(--cyan-dim);
+}
+#detail {
+  margin-top: 40px;
+  padding: 20px;
+  border: 1px solid rgba(0,255,255,0.3);
+  min-height: 180px;
+}
+.buy-btn {
+  margin-top: 30px;
+  padding: 12px 24px;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.buy-btn:hover {
+  background: var(--cyan);
+  color: #000;
+}
+#nav-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  color: var(--cyan-dim);
+}
+#nav-bar a { color: var(--cyan-dim); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="console">
+  <div class="line bold">W.O.F.T.R. // AI AGENTS</div>
+  <div class="line muted">SELECT AN AGENT TO VIEW DETAILS</div>
+  <hr style="border-color:rgba(0,255,255,0.2);margin:20px 0;">
+
+  <div id="agent-list">
+    <!-- Populated by JS -->
+  </div>
+
+  <div id="detail" style="display:none;">
+    <div id="detail-content"></div>
+    <button class="buy-btn" onclick="buyAgent()">BUY THIS AGENT → STRIPE</button>
+  </div>
+</div>
+
+<div id="nav-bar">
+  &gt; <a href="index.html">RETURN TO MENU</a>
+</div>
+
+<script>
+const agents = [
+  {
+    id: "internal-knowledge",
+    label: "INTERNAL KNOWLEDGE AGENT",
+    price: "$1,497",
+    desc: "Secure RAG agent that answers questions from your company SharePoint with Entra ID security trimming. Data never leaves your tenant.",
+    stripe: "https://buy.stripe.com/test_internal_knowledge"
+  },
+  {
+    id: "policy-review",
+    label: "POLICY & PROCEDURE AGENT",
+    price: "$1,997",
+    desc: "Reviews documents against your company policies and flags compliance issues. Built with strict access control.",
+    stripe: "https://buy.stripe.com/test_policy_review"
+  },
+  {
+    id: "meeting-actions",
+    label: "MEETING ACTIONS AGENT",
+    price: "$997",
+    desc: "Listens to meetings, extracts action items, and assigns them to the correct people with deadlines.",
+    stripe: "https://buy.stripe.com/test_meeting_actions"
+  }
+];
+
+function renderAgents() {
+  const container = document.getElementById('agent-list');
+  container.innerHTML = '';
+  agents.forEach(agent => {
+    const div = document.createElement('div');
+    div.className = 'agent line';
+    div.textContent = agent.label + ' — ' + agent.price;
+    div.onclick = () => selectAgent(agent, div);
+    container.appendChild(div);
+  });
+}
+
+let currentAgent = null;
+function selectAgent(agent, element) {
+  // Deselect others
+  document.querySelectorAll('.agent').forEach(el => el.classList.remove('selected'));
+  element.classList.add('selected');
+
+  currentAgent = agent;
+
+  const detail = document.getElementById('detail');
+  const content = document.getElementById('detail-content');
+  content.innerHTML = `
+    <div class="line bold">${agent.label}</div>
+    <div class="line muted">${agent.price}</div>
+    <div class="spacer" style="height:12px"></div>
+    <div class="line">${agent.desc}</div>
+  `;
+  detail.style.display = 'block';
+}
+
+function buyAgent() {
+  if (currentAgent && currentAgent.stripe) {
+    window.location.href = currentAgent.stripe;
+  }
+}
+
+renderAgents();
+</script>
+</body>
+</html>
