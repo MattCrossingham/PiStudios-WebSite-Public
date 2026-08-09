@@ -283,23 +283,15 @@ function speak(text) {
     if (!('speechSynthesis' in window)) return;
     if (!woprVoice) pickVoice();
     window.speechSynthesis.cancel();
-    const clean = String(text).toLowerCase().replace(/[—–]/g, " ").replace(/[.,!?;:]/g, "").trim();
-    const words = clean.split(/\s+/).filter(Boolean);
-    if (!words.length) return;
-    let i = 0;
-    function chain() {
-      if (i >= words.length) return;
-      const idx = i++;
-      const u = new SpeechSynthesisUtterance(words[idx]);
-      if (woprVoice) u.voice = woprVoice;
-      u.rate = 1.05;
-      u.volume = 0.9;
-      u.pitch = 0.3;
-      u.onend = chain;
-      u.onerror = chain;
-      window.speechSynthesis.speak(u);
-    }
-    chain();
+    // Single utterance + high rate (~5x prior 1.05 word-chain feel)
+    const clean = String(text).replace(/[—–]/g, " ").trim();
+    if (!clean) return;
+    const u = new SpeechSynthesisUtterance(clean);
+    if (woprVoice) u.voice = woprVoice;
+    u.rate = 5.0;   // Web Speech max practical snap; was 1.05 word-by-word
+    u.pitch = 0.3;
+    u.volume = 0.9;
+    window.speechSynthesis.speak(u);
   } catch (e) {}
 }
 if ('speechSynthesis' in window) {

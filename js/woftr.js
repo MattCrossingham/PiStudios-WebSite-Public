@@ -83,14 +83,16 @@ if('speechSynthesis' in window){
 
 function speak(text){
   try{
+    if(!('speechSynthesis' in window)) return;
+    if(!woprVoice) pickVoice();
     window.speechSynthesis.cancel();
-    const words=text.toLowerCase().replace(/[—]/g,' ').split(/\s+/).filter(Boolean);
-    for(const word of words){
-      const u=new SpeechSynthesisUtterance(word);
-      if(woprVoice) u.voice=woprVoice;
-      u.rate=1.05; u.pitch=0.3; u.volume=0.9;
-      window.speechSynthesis.speak(u);
-    }
+    // Full phrase at ~5x prior rate (was 1.05 word-by-word)
+    const clean=String(text).replace(/[—–]/g,' ').trim();
+    if(!clean) return;
+    const u=new SpeechSynthesisUtterance(clean);
+    if(woprVoice) u.voice=woprVoice;
+    u.rate=5.0; u.pitch=0.3; u.volume=0.9;
+    window.speechSynthesis.speak(u);
   }catch(e){}
 }
 
