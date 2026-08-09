@@ -283,12 +283,12 @@ function speak(text) {
     if (!('speechSynthesis' in window)) return;
     if (!woprVoice) pickVoice();
     window.speechSynthesis.cancel();
-    // Single utterance + high rate (~5x prior 1.05 word-chain feel)
+    // Single full-phrase utterance (rate tuned for clarity)
     const clean = String(text).replace(/[—–]/g, " ").trim();
     if (!clean) return;
     const u = new SpeechSynthesisUtterance(clean);
     if (woprVoice) u.voice = woprVoice;
-    u.rate = 5.0;   // Web Speech max practical snap; was 1.05 word-by-word
+    u.rate = 1.67;  // ~3x slower than 5.0; still single full-phrase utterance
     u.pitch = 0.3;
     u.volume = 0.9;
     window.speechSynthesis.speak(u);
