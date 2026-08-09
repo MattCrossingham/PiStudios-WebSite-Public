@@ -1,9 +1,8 @@
 /* ============================================================
    WOFTR — shared helpers (sound, voice, typing, nav)
-   Every page includes this so behaviour + voice stay identical.
    ============================================================ */
 
-// ── AUDIO ─────────────────────────────────────────────────────
+// ── AUDIO (no modem / no mp3) ─────────────────────────────────
 let _audioCtx;
 function getCtx(){
   if(!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -26,7 +25,7 @@ function startHum(){
   try{
     const ctx=getCtx(),osc=ctx.createOscillator(),gain=ctx.createGain(),flt=ctx.createBiquadFilter();
     osc.type='sine';osc.frequency.value=78;
-    flt.type='lowpass';flt.frequency.value=350;gain.gain.value=0.005;
+    flt.type='lowpass';flt.frequency.value=350;gain.gain.value=0.004;
     osc.connect(flt);flt.connect(gain);gain.connect(ctx.destination);osc.start();
   }catch(e){}
 }
@@ -41,7 +40,6 @@ function playBeep(freq=440,dur=0.08,vol=0.06){
   }catch(e){}
 }
 
-// unlock audio + hide sound note on first interaction
 document.addEventListener('keydown',()=>{
   startHum();
   const n=document.getElementById('sound-note');
@@ -49,7 +47,6 @@ document.addEventListener('keydown',()=>{
 },{once:true});
 document.addEventListener('click',()=>{ startHum(); },{once:true});
 
-// attach key click to any text inputs present
 window.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('input[type="text"]').forEach(i=>{
     i.addEventListener('keydown',playKeyClick);
@@ -58,13 +55,12 @@ window.addEventListener('DOMContentLoaded',()=>{
   });
 });
 
-// ── AUTO-SIZE MONOSPACE INPUTS ────────────────────────────────
 function autoSize(input){
+  if(!input) return;
   input.style.width=Math.max(1,input.value.length+1)+'ch';
 }
 
 // ── WOPR VOICE ────────────────────────────────────────────────
-// NOTE: tuned later. Flat, monotone, clipped, cold + machine-like.
 let woprVoice=null;
 function pickVoice(){
   const voices=window.speechSynthesis.getVoices();
@@ -86,7 +82,6 @@ function speak(text){
     if(!('speechSynthesis' in window)) return;
     if(!woprVoice) pickVoice();
     window.speechSynthesis.cancel();
-    // Full phrase utterance (rate 0.9 — clear, not slow-mo)
     const clean=String(text).replace(/[—–]/g,' ').trim();
     if(!clean) return;
     const u=new SpeechSynthesisUtterance(clean);
@@ -109,7 +104,12 @@ function typeText(el,text,speed=45){
   });
 }
 
-// type a sequence of lines into a container element
+function respond(el,text){
+  if(!el) return;
+  typeText(el,text,42);
+  speak(text);
+}
+
 async function typeLines(container, lines, opts={}){
   const {lineDelay=140, speak:doSpeak=false}=opts;
   for(const ln of lines){
@@ -122,18 +122,10 @@ async function typeLines(container, lines, opts={}){
   }
 }
 
-// ── BACK TO MENU (Esc / M) ────────────────────────────────────
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ window.location.href='index.html'; }
-});
-
-// typewriter — types text char by char into a NEW line appended to the terminal/container
-// Useful for dramatic reveal lines. Returns a promise.
 async function typewriter(text, cls='', speed=45, delay=0) {
   await sleep(delay);
   const d = document.createElement('div');
   d.className = 'line ' + cls;
-  // append to the log element if present, else body
   const container = document.getElementById('log') || document.querySelector('.console') || document.body;
   container.appendChild(d);
   for (const ch of text) {
@@ -143,3 +135,42 @@ async function typewriter(text, cls='', speed=45, delay=0) {
   }
   return d;
 }
+
+async function revealItems(container,items,isPlain=false){
+  container.innerHTML='';
+  for(const item of items){
+    const d=document.createElement('div');
+    const label=isPlain?item:item.label;
+    const accent=!isPlain&&item.accent;
+    d.className='menu-item line clickable'+(accent?' accent bold':'');
+    d.textContent=label;
+    d.setAttribute('role','button');
+    d.tabIndex=0;
+    container.appendChild(d);
+    await sleep(90);
+    d.classList.add('visible');
+  }
+}
+
+function wireMenuClicks(containerId, onPick){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  el.addEventListener('click',e=>{
+    if(!e.target.classList.contains('menu-item'))return;
+    onPick(e.target.textContent.toUpperCase());
+  });
+  el.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    if(!e.target.classList.contains('menu-item'))return;
+    e.preventDefault();
+    onPick(e.target.textContent.toUpperCase());
+  });
+}
+
+// Escape → main menu (skip if already on index and no data-stay)
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const path=(location.pathname||'').split('/').pop()||'index.html';
+  if(path==='index.html'||path===''||path==='/') return;
+  window.location.href = path.includes('/') ? '../index.html' : 'index.html';
+});
