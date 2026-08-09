@@ -2,21 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WOFTR // AI AGENTS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PI STUDIOS | AI AGENTS // W.O.F.T.R.</title>
+<meta name="description" content="Pi Studios deployable AI agents. Secure enterprise agents with real access control.">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <style>
 :root {
-  --cyan: #00FFFF;
-  --cyan-dim: rgba(0,255,255,0.4);
+  --cyan: #00BFFF;
+  --cyan-dim: rgba(0,191,255,0.42);
   --bg: #000;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
-  height: 100%;
+  min-height: 100%;
   background: var(--bg);
   color: var(--cyan);
-  font-family: 'Courier New', monospace;
-  font-size: clamp(18px, 2vw, 22px);
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: clamp(18px, 2.2vw, 24px);
   line-height: 1.5;
   text-transform: uppercase;
   overflow-x: hidden;
@@ -28,39 +33,66 @@ body::before {
   inset: 0;
   background: repeating-linear-gradient(
     0deg, transparent, transparent 3px,
-    rgba(0,255,255,0.03) 3px, rgba(0,255,255,0.03) 4px
+    rgba(0,191,255,0.035) 3px, rgba(0,191,255,0.035) 4px
   );
   pointer-events: none;
   z-index: 9997;
 }
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.75) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
 .console {
   width: min(860px, 94vw);
   margin: 0 auto;
-  padding: 60px 20px 80px;
+  padding: clamp(40px, 8vh, 70px) 12px max(90px, env(safe-area-inset-bottom));
   min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  z-index: 1;
 }
 .line { margin-bottom: 4px; letter-spacing: 0.03em; }
 .line.muted { color: var(--cyan-dim); text-shadow: none; }
-.line.bold { letter-spacing: 0.08em; }
-.agent {
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(0,255,255,0.2);
-  cursor: pointer;
+.line.bold {
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px var(--cyan), 0 0 22px var(--cyan-dim);
 }
-.agent:hover { color: #fff; text-shadow: 0 0 8px #fff, 0 0 20px var(--cyan); }
+hr.divider {
+  border: none;
+  border-top: 1px solid rgba(0,191,255,0.25);
+  margin: 1em 0;
+}
+.agent {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,191,255,0.18);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.agent:hover, .agent:focus {
+  color: #fff;
+  text-shadow: 0 0 8px #fff, 0 0 20px var(--cyan);
+  outline: none;
+}
 .agent.selected {
   color: #fff;
   text-shadow: 0 0 10px var(--cyan), 0 0 24px var(--cyan-dim);
 }
 #detail {
-  margin-top: 40px;
-  padding: 20px;
-  border: 1px solid rgba(0,255,255,0.3);
-  min-height: 180px;
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid rgba(0,191,255,0.3);
+  min-height: 160px;
+  display: none;
 }
-.buy-btn {
-  margin-top: 30px;
-  padding: 12px 24px;
+.action-btn {
+  display: inline-block;
+  margin-top: 22px;
+  margin-right: 10px;
+  padding: 10px 18px;
   border: 1px solid var(--cyan);
   color: var(--cyan);
   background: transparent;
@@ -68,40 +100,48 @@ body::before {
   font-size: inherit;
   text-transform: uppercase;
   cursor: pointer;
+  text-decoration: none;
+  text-shadow: 0 0 6px var(--cyan-dim);
 }
-.buy-btn:hover {
+.action-btn:hover {
   background: var(--cyan);
   color: #000;
+  text-shadow: none;
 }
 #nav-bar {
   position: fixed;
-  bottom: 20px;
+  bottom: max(16px, env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  font-size: 13px;
+  font-size: 0.85em;
   color: var(--cyan-dim);
+  z-index: 9999;
+  text-shadow: none;
+  letter-spacing: 0.06em;
 }
-#nav-bar a { color: var(--cyan-dim); text-decoration: none; }
+#nav-bar a { color: var(--cyan); text-decoration: none; text-shadow: 0 0 6px var(--cyan-dim); }
+#nav-bar a:hover { color: #fff; }
 </style>
 </head>
 <body>
 <div class="console">
   <div class="line bold">W.O.F.T.R. // AI AGENTS</div>
-  <div class="line muted">SELECT AN AGENT TO VIEW DETAILS</div>
-  <hr style="border-color:rgba(0,255,255,0.2);margin:20px 0;">
+  <div class="line muted">CLASSIFICATION: RESTRICTED &nbsp;|&nbsp; DEPLOYABLE UNITS</div>
+  <div class="line muted">SELECT AN AGENT FOR DOSSIER</div>
+  <hr class="divider">
 
-  <div id="agent-list">
-    <!-- Populated by JS -->
-  </div>
+  <div id="agent-list"></div>
 
-  <div id="detail" style="display:none;">
+  <div id="detail">
     <div id="detail-content"></div>
-    <button class="buy-btn" onclick="buyAgent()">BUY THIS AGENT → STRIPE</button>
+    <a class="action-btn" id="contact-btn" href="mailto:matt@pistudios.app?subject=AI%20Agent%20Deployment">REQUEST DEPLOYMENT // MATT@PISTUDIOS.APP</a>
   </div>
 </div>
 
 <div id="nav-bar">
   &gt; <a href="index.html">RETURN TO MENU</a>
+  &nbsp;//&nbsp;
+  <a href="index.html">ESC</a>
 </div>
 
 <script>
@@ -109,23 +149,20 @@ const agents = [
   {
     id: "internal-knowledge",
     label: "INTERNAL KNOWLEDGE AGENT",
-    price: "$1,497",
-    desc: "Secure RAG agent that answers questions from your company SharePoint with Entra ID security trimming. Data never leaves your tenant.",
-    stripe: "https://buy.stripe.com/test_internal_knowledge"
+    status: "READY",
+    desc: "Secure RAG over your company knowledge. Entra ID security trimming. Answers stay inside your tenant boundary."
   },
   {
     id: "policy-review",
     label: "POLICY & PROCEDURE AGENT",
-    price: "$1,997",
-    desc: "Reviews documents against your company policies and flags compliance issues. Built with strict access control.",
-    stripe: "https://buy.stripe.com/test_policy_review"
+    status: "READY",
+    desc: "Reviews documents against your policies. Flags compliance risk. Built for controlled access, not public chat toys."
   },
   {
     id: "meeting-actions",
     label: "MEETING ACTIONS AGENT",
-    price: "$997",
-    desc: "Listens to meetings, extracts action items, and assigns them to the correct people with deadlines.",
-    stripe: "https://buy.stripe.com/test_meeting_actions"
+    status: "READY",
+    desc: "Turns meetings into assigned actions with owners and deadlines. Less notes. More execution."
   }
 ];
 
@@ -135,36 +172,41 @@ function renderAgents() {
   agents.forEach(agent => {
     const div = document.createElement('div');
     div.className = 'agent line';
-    div.textContent = agent.label + ' — ' + agent.price;
+    div.textContent = agent.label + ' — ' + agent.status;
+    div.setAttribute('role', 'button');
+    div.tabIndex = 0;
     div.onclick = () => selectAgent(agent, div);
+    div.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectAgent(agent, div);
+      }
+    };
     container.appendChild(div);
   });
 }
 
 let currentAgent = null;
 function selectAgent(agent, element) {
-  // Deselect others
   document.querySelectorAll('.agent').forEach(el => el.classList.remove('selected'));
   element.classList.add('selected');
-
   currentAgent = agent;
-
   const detail = document.getElementById('detail');
   const content = document.getElementById('detail-content');
-  content.innerHTML = `
-    <div class="line bold">${agent.label}</div>
-    <div class="line muted">${agent.price}</div>
-    <div class="spacer" style="height:12px"></div>
-    <div class="line">${agent.desc}</div>
-  `;
+  content.innerHTML =
+    '<div class="line bold">' + agent.label + '</div>' +
+    '<div class="line muted">STATUS: ' + agent.status + '</div>' +
+    '<div class="line muted" style="margin:10px 0 8px">UNIT ID: ' + agent.id.toUpperCase() + '</div>' +
+    '<div class="line">' + agent.desc + '</div>' +
+    '<div class="line muted" style="margin-top:12px">DEPLOYMENT: CUSTOM QUOTE // SECURE TENANT FIT</div>';
   detail.style.display = 'block';
+  const btn = document.getElementById('contact-btn');
+  btn.href = 'mailto:matt@pistudios.app?subject=' + encodeURIComponent('AI Agent Deployment — ' + agent.label);
 }
 
-function buyAgent() {
-  if (currentAgent && currentAgent.stripe) {
-    window.location.href = currentAgent.stripe;
-  }
-}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') window.location.href = 'index.html';
+});
 
 renderAgents();
 </script>
