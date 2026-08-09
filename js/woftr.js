@@ -86,12 +86,12 @@ function speak(text){
     if(!('speechSynthesis' in window)) return;
     if(!woprVoice) pickVoice();
     window.speechSynthesis.cancel();
-    // Full phrase utterance (rate 1.67 = ~3x slower than 5.0)
+    // Full phrase utterance (rate 0.33 = ~5x slower than 1.67)
     const clean=String(text).replace(/[—–]/g,' ').trim();
     if(!clean) return;
     const u=new SpeechSynthesisUtterance(clean);
     if(woprVoice) u.voice=woprVoice;
-    u.rate=1.67; u.pitch=0.3; u.volume=0.9;
+    u.rate=0.33; u.pitch=0.3; u.volume=0.9;
     window.speechSynthesis.speak(u);
   }catch(e){}
 }

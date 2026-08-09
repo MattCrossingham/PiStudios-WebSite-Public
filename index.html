@@ -288,7 +288,7 @@ function speak(text) {
     if (!clean) return;
     const u = new SpeechSynthesisUtterance(clean);
     if (woprVoice) u.voice = woprVoice;
-    u.rate = 1.67;  // ~3x slower than 5.0; still single full-phrase utterance
+    u.rate = 0.33;  // ~5x slower than 1.67; full-phrase utterance
     u.pitch = 0.3;
     u.volume = 0.9;
     window.speechSynthesis.speak(u);
