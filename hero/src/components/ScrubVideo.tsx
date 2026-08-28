@@ -2,12 +2,35 @@ import { useEffect, useRef } from 'react'
 
 const SENSITIVITY = 0.8
 
-export default function ScrubVideo({ src }: { src: string }) {
+export default function ScrubVideo({
+  src,
+  playing,
+}: {
+  src: string
+  playing: boolean
+}) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
+
+    if (playing) {
+      video.loop = true
+      const start = () => {
+        video.currentTime = 0
+        void video.play()
+      }
+      if (video.readyState >= 2) start()
+      else video.addEventListener('loadeddata', start, { once: true })
+      return () => {
+        video.removeEventListener('loadeddata', start)
+        video.pause()
+      }
+    }
+
+    video.loop = false
+    video.pause()
 
     let prevX: number | null = null
     let targetTime = 0
@@ -60,7 +83,7 @@ export default function ScrubVideo({ src }: { src: string }) {
       window.removeEventListener('touchmove', onTouchMove)
       video.removeEventListener('seeked', onSeeked)
     }
-  }, [src])
+  }, [src, playing])
 
   return (
     <video
