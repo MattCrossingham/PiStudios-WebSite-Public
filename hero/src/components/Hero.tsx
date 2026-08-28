@@ -9,7 +9,6 @@ const EMAIL = 'info@pistudios.app'
 const PILLS: { label: string; href?: string; clip: boolean }[] = [
   { label: 'Labs', href: '/labs.html', clip: true },
   { label: 'Studio', href: 'https://filmdesigns.tv', clip: false },
-  { label: 'Openings', href: 'mailto:info@pistudios.app?subject=Openings', clip: false },
   { label: 'Shop', href: 'https://nospeaky.ai', clip: false },
 ]
 
