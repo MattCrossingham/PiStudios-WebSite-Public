@@ -27,15 +27,6 @@ export default function LabsPage() {
   return (
     <>
       <Navbar />
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <img
-          src="/labs-bg.jpg"
-          alt=""
-          className="h-full w-full object-cover object-[78%_center]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-transparent md:via-black/55" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent from-40% to-black" />
-      </div>
       <main
         className="relative z-[1] min-h-dvh text-[#00e5ff]"
         style={{
@@ -45,41 +36,35 @@ export default function LabsPage() {
           paddingRight: 'max(1.25rem, env(safe-area-inset-right))',
         }}
       >
-        <div className="mx-auto max-w-xl md:mx-0 md:max-w-lg lg:max-w-xl">
-          <div className="flex min-h-[70dvh] flex-col justify-end pb-10 md:justify-center md:pb-0">
-            <p className="mb-2 text-[13px] tracking-[0.2em] uppercase opacity-70">Labs</p>
-            <h1
-              className="mb-6 font-normal"
-              style={{ fontSize: 'clamp(22px, 5vw, 32px)', lineHeight: 1.25 }}
-            >
-              Systems for companies that need them built properly.
-            </h1>
-            <p className="text-[16px] leading-relaxed opacity-90 sm:text-[17px]">
-              Identity. Knowledge that stays put. Agents that do work under control.
-              Production pipelines that actually ship. Same outfit that makes the pictures.
-            </p>
-          </div>
+        <div className="mx-auto max-w-xl">
+          <p className="mb-2 text-[13px] tracking-[0.2em] uppercase opacity-70">Labs</p>
+          <h1
+            className="mb-6 font-normal"
+            style={{ fontSize: 'clamp(22px, 5vw, 32px)', lineHeight: 1.25 }}
+          >
+            Systems for companies that need them built properly.
+          </h1>
+          <p className="mb-10 text-[16px] leading-relaxed opacity-90 sm:text-[17px]">
+            Identity. Knowledge that stays put. Agents that do work under control.
+            Production pipelines that actually ship. Same outfit that makes the pictures.
+          </p>
 
-          <div className="relative rounded-sm bg-black/80 py-8 pr-2 backdrop-blur-[2px] md:bg-black/90">
-            {BLOCKS.map((b) => (
-              <section key={b.title} className="mb-9 last:mb-0">
-                <h2 className="mb-2 text-[15px] tracking-[0.12em] uppercase">{b.title}</h2>
-                <p className="text-[16px] leading-relaxed opacity-90" style={{ overflowWrap: 'anywhere' }}>
-                  {b.body}
-                </p>
-              </section>
-            ))}
+          {BLOCKS.map((b) => (
+            <section key={b.title} className="mb-9">
+              <h2 className="mb-2 text-[15px] tracking-[0.12em] uppercase">{b.title}</h2>
+              <p className="text-[16px] leading-relaxed opacity-90" style={{ overflowWrap: 'anywhere' }}>{b.body}</p>
+            </section>
+          ))}
 
-            <p className="mt-12 text-[15px]">
-              <a href="mailto:info@pistudios.app?subject=Labs" className="text-[#00e5ff] underline underline-offset-2">
-                info@pistudios.app
-              </a>
-              <span className="mx-3 opacity-40">/</span>
-              <a href="/" className="text-[#00e5ff] no-underline opacity-80 hover:opacity-100">
-                Home
-              </a>
-            </p>
-          </div>
+          <p className="mt-12 text-[15px]">
+            <a href="mailto:info@pistudios.app?subject=Labs" className="text-[#00e5ff] underline underline-offset-2">
+              info@pistudios.app
+            </a>
+            <span className="mx-3 opacity-40">/</span>
+            <a href="/" className="text-[#00e5ff] no-underline opacity-80 hover:opacity-100">
+              Home
+            </a>
+          </p>
         </div>
       </main>
     </>
