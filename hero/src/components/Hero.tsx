@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { useTypewriter } from '../hooks/useTypewriter'
 
 const TYPE_TEXT =
@@ -6,8 +6,8 @@ const TYPE_TEXT =
 
 const EMAIL = 'matt@pistudios.app'
 
-const PILLS = [
-  { label: 'Labs', href: '/ai-agents.html', clip: true },
+const PILLS: { label: string; href?: string; clip: boolean }[] = [
+  { label: 'Labs', clip: true },
   { label: 'Studio', href: 'https://filmdesigns.tv', clip: false },
   { label: 'Openings', href: 'mailto:matt@pistudios.app?subject=Openings', clip: false },
   { label: 'Shop', href: 'https://nospeaky.ai', clip: false },
@@ -94,25 +94,34 @@ export default function Hero({
             transition: 'opacity 0.4s ease, transform 0.4s ease',
           }}
         >
-          {PILLS.map((p) => (
-            <a
-              key={p.label}
-              href={p.href}
-              className={pillClass}
-              onMouseEnter={p.clip ? onLabsEnter : undefined}
-              onMouseLeave={p.clip && !isCoarse() ? onLabsLeave : undefined}
-              onClick={(e) => {
-                e.stopPropagation()
-                if (!p.clip || !isCoarse()) return
-                if (!labsOn) {
-                  e.preventDefault()
-                  onLabsEnter()
+          {PILLS.map((p) => {
+            const clipHandlers = p.clip
+              ? {
+                  onMouseEnter: onLabsEnter,
+                  onMouseLeave: isCoarse() ? undefined : onLabsLeave,
+                  onClick: (e: MouseEvent) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    onLabsEnter()
+                  },
                 }
-              }}
-            >
-              {p.label}
-            </a>
-          ))}
+              : {
+                  onClick: (e: MouseEvent) => e.stopPropagation(),
+                }
+            const className = pillClass
+            if (!p.href) {
+              return (
+                <button key={p.label} type="button" className={className} {...clipHandlers}>
+                  {p.label}
+                </button>
+              )
+            }
+            return (
+              <a key={p.label} href={p.href} className={className} {...clipHandlers}>
+                {p.label}
+              </a>
+            )
+          })}
 
           <button
             type="button"
