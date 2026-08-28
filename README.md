@@ -1,10 +1,17 @@
 # Pi Studios
 
-Official website for Pi Studios → https://pistudios.app
+Official website → https://pistudios.app
 
-Hero landing (mouse-scrub video). W.O.F.T.R. terminal lives at /wopr.html
+Cinematic felt-wizard shopfront. Pi Studios Pty Ltd.
 
-Source: hero/ (React + Vite + Tailwind). Build, then copy dist-hero/index.html and assets to repo root for GitHub Pages.
+## Copyright
+
+© 2026 Pi Studios Pty Ltd / Matt Crossingham. All Rights Reserved.
+
+No part of this website, its source, video, logo, or copy may be copied, modified,
+trained on, or distributed without written permission.
+
+Contact: matt@pistudios.app
 
 ## Local
 
@@ -15,8 +22,4 @@ cd hero && npm install && npm run dev
 cd hero && npm run build
 cp dist-hero/index.html index.html
 cp dist-hero/assets/* assets/
-
-## Copyright
-© 2026 Matt Crossingham / Pi Studios. All Rights Reserved.
-
-No part of this website or its source code may be copied, modified, or distributed without explicit written permission.
+# also copy public media: hero.mp4 labs.mp4 logo.png
