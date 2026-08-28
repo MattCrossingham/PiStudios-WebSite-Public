@@ -8,11 +8,12 @@ const LABS = '/labs.mp4'
 
 export default function App() {
   const [src, setSrc] = useState(HOME)
+  const playing = src === LABS
 
   return (
     <>
       <video src={LABS} muted playsInline preload="auto" className="hidden" aria-hidden="true" />
-      <ScrubVideo src={src} />
+      <ScrubVideo src={src} playing={playing} />
       <Navbar />
       <Hero
         onLabsEnter={() => setSrc(LABS)}
