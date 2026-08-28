@@ -55,7 +55,7 @@ export default function Hero() {
   }
 
   const pillClass =
-    'inline-flex items-center justify-center whitespace-nowrap rounded-full border border-black/10 bg-white px-4 py-[0.3em] mx-[0.2em] mb-[0.4em] text-[13px] text-black no-underline transition-colors duration-200 hover:bg-black hover:text-white sm:px-5 sm:text-[15px]'
+    'inline-flex items-center justify-center whitespace-nowrap rounded-full border border-black/10 bg-[#00e5ff] px-4 py-[0.3em] mx-[0.2em] mb-[0.4em] text-[13px] text-black no-underline transition-colors duration-200 hover:bg-black hover:text-[#00e5ff] sm:px-5 sm:text-[15px]'
 
   return (
     <section className="relative z-[1] flex h-screen flex-col justify-end overflow-hidden px-5 pb-12 sm:px-8 md:justify-center md:px-10 md:pb-0">
@@ -66,7 +66,7 @@ export default function Hero() {
             fontSize: 'clamp(18px, 4vw, 26px)',
             lineHeight: 1.3,
             fontWeight: 400,
-            color: '#fff',
+            color: '#00e5ff',
             filter: 'blur(4px)',
           }}
         >
@@ -76,7 +76,7 @@ export default function Hero() {
         </div>
 
         <p
-          className="mb-5 text-white sm:mb-6"
+          className="mb-5 text-[#00e5ff] sm:mb-6"
           style={{
             fontSize: 'clamp(18px, 4vw, 26px)',
             lineHeight: 1.35,
@@ -86,7 +86,7 @@ export default function Hero() {
         >
           {displayed}
           {!done && (
-            <span className="cursor-blink ml-[2px] inline-block h-[1.1em] w-[2px] align-middle bg-white" />
+            <span className="cursor-blink ml-[2px] inline-block h-[1.1em] w-[2px] align-middle bg-[#00e5ff]" />
           )}
         </p>
 
@@ -107,7 +107,7 @@ export default function Hero() {
           <button
             type="button"
             onClick={copyEmail}
-            className="mx-[0.2em] mb-[0.4em] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white bg-transparent px-4 py-[0.3em] text-[13px] text-white transition-colors duration-200 hover:bg-white hover:text-black sm:gap-3 sm:px-5 sm:text-[15px]"
+            className="mx-[0.2em] mb-[0.4em] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[#00e5ff] bg-transparent px-4 py-[0.3em] text-[13px] text-[#00e5ff] transition-colors duration-200 hover:bg-[#00e5ff] hover:text-black sm:gap-3 sm:px-5 sm:text-[15px]"
           >
             <span>
               Reach us:{' '}
