@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
 
 const SENSITIVITY = 0.8
-const SRC = '/hero.mp4?v=4'
 
-export default function ScrubVideo() {
+export default function ScrubVideo({ src }: { src: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -61,13 +60,14 @@ export default function ScrubVideo() {
       window.removeEventListener('touchmove', onTouchMove)
       video.removeEventListener('seeked', onSeeked)
     }
-  }, [])
+  }, [src])
 
   return (
     <video
+      key={src}
       ref={videoRef}
       className="scrub-video"
-      src={SRC}
+      src={src}
       muted
       playsInline
       preload="auto"

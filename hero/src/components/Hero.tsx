@@ -22,7 +22,13 @@ function CopyIcon() {
   )
 }
 
-export default function Hero() {
+export default function Hero({
+  onLabsEnter,
+  onLabsLeave,
+}: {
+  onLabsEnter: () => void
+  onLabsLeave: () => void
+}) {
   const { displayed, done } = useTypewriter(TYPE_TEXT, 38, 600)
   const [copied, setCopied] = useState(false)
   const [pillsOn, setPillsOn] = useState(false)
@@ -72,7 +78,13 @@ export default function Hero() {
           }}
         >
           {PILLS.map((p) => (
-            <a key={p.label} href={p.href} className={pillClass}>
+            <a
+              key={p.label}
+              href={p.href}
+              className={pillClass}
+              onMouseEnter={p.label === 'Labs' ? onLabsEnter : undefined}
+              onMouseLeave={p.label === 'Labs' ? onLabsLeave : undefined}
+            >
               {p.label}
             </a>
           ))}
