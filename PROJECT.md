@@ -21,7 +21,7 @@ Local: ~/workspace/PiStudios/Web Development/pistudios-website/
 - Pills: Labs, Studio, Openings, Shop. Reach us copies matt@pistudios.app.
 - Studio → https://filmdesigns.tv (Star Trip completed movie; Buzz Rogers S1 also there).
 - Shop → https://nospeaky.ai
-- Labs plays labs.mp4 only (no page). Openings → mailto.
+- Labs hover/tap plays labs.mp4; click opens /labs.html (identity, knowledge, agents, production, deploy). Openings → mailto.
 - No CloudFront, no Google Fonts, no webfont CDNs. Video/CSS/JS/logo on GitHub only.
 - WOPR/games/dossiers removed from public site 2026-08-28. Do not restore.
 - Helluloid: forget for this shopfront.

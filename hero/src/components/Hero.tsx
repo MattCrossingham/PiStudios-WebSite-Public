@@ -7,7 +7,7 @@ const TYPE_TEXT =
 const EMAIL = 'info@pistudios.app'
 
 const PILLS: { label: string; href?: string; clip: boolean }[] = [
-  { label: 'Labs', clip: true },
+  { label: 'Labs', href: '/labs.html', clip: true },
   { label: 'Studio', href: 'https://filmdesigns.tv', clip: false },
   { label: 'Openings', href: 'mailto:info@pistudios.app?subject=Openings', clip: false },
   { label: 'Shop', href: 'https://nospeaky.ai', clip: false },
@@ -101,8 +101,10 @@ export default function Hero({
                   onMouseLeave: isCoarse() ? undefined : onLabsLeave,
                   onClick: (e: MouseEvent) => {
                     e.stopPropagation()
-                    e.preventDefault()
-                    onLabsEnter()
+                    if (isCoarse() && !labsOn) {
+                      e.preventDefault()
+                      onLabsEnter()
+                    }
                   },
                 }
               : {
