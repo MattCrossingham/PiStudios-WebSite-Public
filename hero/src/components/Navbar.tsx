@@ -13,7 +13,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="fixed top-0 z-10 flex w-full items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
-        <a href="/" className="flex items-center gap-3 text-white no-underline">
+        <a href="/" className="flex items-center gap-3 text-[#00e5ff] no-underline">
           <span
             className="text-[21px] tracking-tight sm:text-[26px]"
             style={{ fontFamily: 'var(--font-heading)' }}
@@ -29,13 +29,13 @@ export default function Navbar() {
           </span>
         </a>
 
-        <div className="hidden text-[23px] text-white md:flex">
+        <div className="hidden text-[23px] text-[#00e5ff] md:flex">
           {LINKS.map((link, i) => (
             <span key={link.label}>
               {i > 0 && <span>, </span>}
               <a
                 href={link.href}
-                className="text-white no-underline transition-opacity hover:opacity-60"
+                className="text-[#00e5ff] no-underline transition-opacity hover:opacity-60"
               >
                 {link.label}
               </a>
@@ -45,7 +45,7 @@ export default function Navbar() {
 
         <a
           href="mailto:matt@pistudios.app"
-          className="hidden text-[23px] text-white underline underline-offset-2 transition-opacity hover:opacity-60 md:block"
+          className="hidden text-[23px] text-[#00e5ff] underline underline-offset-2 transition-opacity hover:opacity-60 md:block"
         >
           Get in touch
         </a>
@@ -57,13 +57,13 @@ export default function Navbar() {
           onClick={() => setOpen((v) => !v)}
         >
           <span
-            className={`block h-[2px] w-6 bg-white transition duration-300 ${open ? 'translate-y-[7px] rotate-45' : ''}`}
+            className={`block h-[2px] w-6 bg-[#00e5ff] transition duration-300 ${open ? 'translate-y-[7px] rotate-45' : ''}`}
           />
           <span
-            className={`block h-[2px] w-6 bg-white transition duration-300 ${open ? 'opacity-0' : ''}`}
+            className={`block h-[2px] w-6 bg-[#00e5ff] transition duration-300 ${open ? 'opacity-0' : ''}`}
           />
           <span
-            className={`block h-[2px] w-6 bg-white transition duration-300 ${open ? '-translate-y-[7px] -rotate-45' : ''}`}
+            className={`block h-[2px] w-6 bg-[#00e5ff] transition duration-300 ${open ? '-translate-y-[7px] -rotate-45' : ''}`}
           />
         </button>
       </nav>
@@ -76,7 +76,7 @@ export default function Navbar() {
           <a
             key={link.label}
             href={link.href}
-            className="text-[32px] font-medium text-white no-underline"
+            className="text-[32px] font-medium text-[#00e5ff] no-underline"
             onClick={() => setOpen(false)}
           >
             {link.label}
@@ -84,7 +84,7 @@ export default function Navbar() {
         ))}
         <a
           href="mailto:matt@pistudios.app"
-          className="text-[32px] font-medium text-white underline"
+          className="text-[32px] font-medium text-[#00e5ff] underline"
           onClick={() => setOpen(false)}
         >
           Get in touch
