@@ -2,13 +2,19 @@
 
 Official website for Pi Studios → https://pistudios.app
 
-W.O.F.T.R. command centre (WarGames / WOPR aesthetic). Static site on GitHub Pages.
+Hero landing (mouse-scrub video). W.O.F.T.R. terminal lives at /wopr.html
+
+Source: hero/ (React + Vite + Tailwind). Build, then copy dist-hero/index.html and assets to repo root for GitHub Pages.
 
 ## Local
 
-python3 -m http.server 4173 --bind 127.0.0.1
+cd hero && npm install && npm run dev
 
-Then open http://127.0.0.1:4173/
+## Pages build
+
+cd hero && npm run build
+cp dist-hero/index.html index.html
+cp dist-hero/assets/* assets/
 
 ## Copyright
 © 2026 Matt Crossingham / Pi Studios. All Rights Reserved.

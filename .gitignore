@@ -1,2 +1,5 @@
 
 .DS_Store
+hero/node_modules
+hero/dist
+dist-hero
