@@ -1,27 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTypewriter } from '../hooks/useTypewriter'
 
 const TYPE_TEXT =
   'Glad you stopped in. Good taste tends to find us. Now, what are we building?'
-
-const PILLS = [
-  {
-    label: 'Pitch us an idea',
-    href: 'mailto:matt@pistudios.app?subject=Pitch',
-  },
-  {
-    label: 'Come work here',
-    href: 'mailto:matt@pistudios.app?subject=Work',
-  },
-  {
-    label: 'Send a brief hello',
-    href: 'mailto:matt@pistudios.app?subject=Hello',
-  },
-  {
-    label: 'See how we operate',
-    href: '/wopr.html',
-  },
-]
 
 const EMAIL = 'matt@pistudios.app'
 
@@ -36,13 +17,7 @@ function CopyIcon() {
 
 export default function Hero() {
   const { displayed, done } = useTypewriter(TYPE_TEXT, 38, 600)
-  const [pillsOn, setPillsOn] = useState(false)
   const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    const id = setTimeout(() => setPillsOn(true), 400)
-    return () => clearTimeout(id)
-  }, [])
 
   const copyEmail = async () => {
     try {
@@ -53,9 +28,6 @@ export default function Hero() {
       /* ignore */
     }
   }
-
-  const pillClass =
-    'inline-flex items-center justify-center whitespace-nowrap rounded-full border border-black/10 bg-[#00e5ff] px-4 py-[0.3em] mx-[0.2em] mb-[0.4em] text-[13px] text-black no-underline transition-colors duration-200 hover:bg-black hover:text-[#00e5ff] sm:px-5 sm:text-[15px]'
 
   return (
     <section className="relative z-[1] flex h-screen flex-col justify-end overflow-hidden px-5 pb-12 sm:px-8 md:justify-center md:px-10 md:pb-0">
@@ -75,34 +47,19 @@ export default function Hero() {
           )}
         </p>
 
-        <div
-          className="flex flex-wrap"
-          style={{
-            opacity: pillsOn ? 1 : 0,
-            transform: pillsOn ? 'translateY(0)' : 'translateY(8px)',
-            transition: 'opacity 0.4s ease, transform 0.4s ease',
-          }}
+        <button
+          type="button"
+          onClick={copyEmail}
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[#00e5ff] bg-transparent px-4 py-[0.3em] text-[13px] text-[#00e5ff] transition-colors duration-200 hover:bg-[#00e5ff] hover:text-black sm:gap-3 sm:px-5 sm:text-[15px]"
         >
-          {PILLS.map((p) => (
-            <a key={p.label} href={p.href} className={pillClass}>
-              {p.label}
-            </a>
-          ))}
-
-          <button
-            type="button"
-            onClick={copyEmail}
-            className="mx-[0.2em] mb-[0.4em] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[#00e5ff] bg-transparent px-4 py-[0.3em] text-[13px] text-[#00e5ff] transition-colors duration-200 hover:bg-[#00e5ff] hover:text-black sm:gap-3 sm:px-5 sm:text-[15px]"
-          >
-            <span>
-              Reach us:{' '}
-              <span className="underline underline-offset-1">
-                {copied ? 'copied' : EMAIL}
-              </span>
+          <span>
+            Reach us:{' '}
+            <span className="underline underline-offset-1">
+              {copied ? 'copied' : EMAIL}
             </span>
-            <CopyIcon />
-          </button>
-        </div>
+          </span>
+          <CopyIcon />
+        </button>
       </div>
     </section>
   )
