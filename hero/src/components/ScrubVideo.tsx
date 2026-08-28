@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 const SENSITIVITY = 0.8
-const SRC = '/hero.mp4'
+const SRC = '/hero.mp4?v=2'
 
 export default function ScrubVideo() {
   const videoRef = useRef<HTMLVideoElement>(null)
