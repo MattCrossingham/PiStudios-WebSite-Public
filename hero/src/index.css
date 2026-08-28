@@ -11,15 +11,23 @@ body,
 #root {
   margin: 0;
   min-height: 100dvh;
+  height: auto;
   background: #000;
   color: var(--cyan);
-  overflow-x: hidden;
+}
+
+html {
+  overflow-x: clip;
+  overflow-y: auto;
 }
 
 body {
   font-family: var(--font-body);
   -webkit-text-size-adjust: 100%;
-  overscroll-behavior: none;
+}
+
+#root {
+  overflow: visible;
 }
 
 @keyframes blink {

@@ -51,8 +51,8 @@ export default function LabsPage() {
 
           {BLOCKS.map((b) => (
             <section key={b.title} className="mb-9">
-              <h2 className="mb-2 text-[15px] tracking-[0.16em] uppercase">{b.title}</h2>
-              <p className="text-[16px] leading-relaxed opacity-90">{b.body}</p>
+              <h2 className="mb-2 text-[15px] tracking-[0.12em] uppercase">{b.title}</h2>
+              <p className="text-[16px] leading-relaxed opacity-90" style={{ overflowWrap: 'anywhere' }}>{b.body}</p>
             </section>
           ))}
 
