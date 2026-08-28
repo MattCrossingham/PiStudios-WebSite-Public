@@ -2,6 +2,10 @@ import { useEffect, useRef } from 'react'
 
 const SENSITIVITY = 0.8
 
+function canHover() {
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches
+}
+
 export default function ScrubVideo({
   src,
   playing,
@@ -31,6 +35,8 @@ export default function ScrubVideo({
 
     video.loop = false
     video.pause()
+
+    if (!canHover()) return
 
     let prevX: number | null = null
     let targetTime = 0
@@ -70,17 +76,12 @@ export default function ScrubVideo({
     }
 
     const onMouseMove = (e: MouseEvent) => onMove(e.clientX)
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) onMove(e.touches[0].clientX)
-    }
 
     window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('touchmove', onTouchMove, { passive: true })
     video.addEventListener('seeked', onSeeked)
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('touchmove', onTouchMove)
       video.removeEventListener('seeked', onSeeked)
     }
   }, [src, playing])
