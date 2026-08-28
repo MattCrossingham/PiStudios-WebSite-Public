@@ -21,9 +21,9 @@ Local: ~/workspace/PiStudios/Web Development/pistudios-website/
 - Pills: Labs, Studio, Openings, Shop. Reach us copies matt@pistudios.app.
 - Studio → https://filmdesigns.tv (Star Trip completed movie; Buzz Rogers S1 also there).
 - Shop → https://nospeaky.ai
-- Labs → /ai-agents.html (legacy). Openings → mailto.
-- No CloudFront, no Google Fonts, no webfont CDNs on the homepage. Video/CSS/JS/logo on GitHub only.
-- WOPR parked at /wopr.html, off the homepage. Do not restore as the public face.
+- Labs plays labs.mp4 only (no page). Openings → mailto.
+- No CloudFront, no Google Fonts, no webfont CDNs. Video/CSS/JS/logo on GitHub only.
+- WOPR/games/dossiers removed from public site 2026-08-28. Do not restore.
 - Helluloid: forget for this shopfront.
 - MacClip/Stints stay off.
 
@@ -34,4 +34,4 @@ Source: hero/ (React, Vite, Tailwind). Build to dist-hero, copy index.html + ass
 Studio, Openings, Shop — Matt making. Same hover-play pattern as Labs.
 
 ## Legal reality
-A public page can be screenshotted. Protection is copyright (Pty Ltd, all rights reserved, no licence), not DRM. Homepage assets are first-party. WOPR games still had Google Fonts / jsDelivr if those URLs are hit — do not treat those as the shopfront.
+A public page can be screenshotted. Protection is copyright (Pty Ltd, all rights reserved, no licence), not DRM. Homepage assets are first-party.
