@@ -60,21 +60,6 @@ export default function Hero() {
   return (
     <section className="relative z-[1] flex h-screen flex-col justify-end overflow-hidden px-5 pb-12 sm:px-8 md:justify-center md:px-10 md:pb-0">
       <div className="relative z-10 max-w-xl">
-        <div
-          className="pointer-events-none mb-5 select-none sm:mb-6"
-          style={{
-            fontSize: 'clamp(18px, 4vw, 26px)',
-            lineHeight: 1.3,
-            fontWeight: 400,
-            color: '#00e5ff',
-            filter: 'blur(4px)',
-          }}
-        >
-          Hey there, meet W.O.F.T.R,
-          <br />
-          Pi Studios&apos; Adaptive Response Interface Agent
-        </div>
-
         <p
           className="mb-5 text-[#00e5ff] sm:mb-6"
           style={{
