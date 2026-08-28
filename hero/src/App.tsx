@@ -16,6 +16,7 @@ export default function App() {
       <ScrubVideo src={src} playing={playing} />
       <Navbar />
       <Hero
+        labsOn={playing}
         onLabsEnter={() => setSrc(LABS)}
         onLabsLeave={() => setSrc(HOME)}
       />

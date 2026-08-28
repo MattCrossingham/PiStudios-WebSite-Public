@@ -7,10 +7,10 @@ const TYPE_TEXT =
 const EMAIL = 'matt@pistudios.app'
 
 const PILLS = [
-  { label: 'Labs', href: '/ai-agents.html' },
-  { label: 'Studio', href: 'https://filmdesigns.tv' },
-  { label: 'Openings', href: 'mailto:matt@pistudios.app?subject=Openings' },
-  { label: 'Shop', href: 'https://nospeaky.ai' },
+  { label: 'Labs', href: '/ai-agents.html', clip: true },
+  { label: 'Studio', href: 'https://filmdesigns.tv', clip: false },
+  { label: 'Openings', href: 'mailto:matt@pistudios.app?subject=Openings', clip: false },
+  { label: 'Shop', href: 'https://nospeaky.ai', clip: false },
 ]
 
 function CopyIcon() {
@@ -22,10 +22,16 @@ function CopyIcon() {
   )
 }
 
+function isCoarse() {
+  return !window.matchMedia('(hover: hover) and (pointer: fine)').matches
+}
+
 export default function Hero({
+  labsOn,
   onLabsEnter,
   onLabsLeave,
 }: {
+  labsOn: boolean
   onLabsEnter: () => void
   onLabsLeave: () => void
 }) {
@@ -49,18 +55,29 @@ export default function Hero({
   }
 
   const pillClass =
-    'inline-flex items-center justify-center whitespace-nowrap rounded-full border border-black/10 bg-[#00e5ff] px-4 py-[0.3em] mx-[0.2em] mb-[0.4em] text-[13px] text-black no-underline transition-colors duration-200 hover:bg-black hover:text-[#00e5ff] sm:px-5 sm:text-[15px]'
+    'inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-black/10 bg-[#00e5ff] px-4 py-[0.45em] mx-[0.15em] mb-[0.45em] text-[14px] text-black no-underline transition-colors duration-200 hover:bg-black hover:text-[#00e5ff] sm:min-h-0 sm:px-5 sm:text-[15px] sm:py-[0.3em]'
 
   return (
-    <section className="relative z-[1] flex h-screen flex-col justify-end overflow-hidden px-5 pb-12 sm:px-8 md:justify-center md:px-10 md:pb-0">
-      <div className="relative z-10 max-w-xl">
+    <section
+      className="relative z-[1] flex h-dvh flex-col justify-end overflow-hidden md:justify-center"
+      style={{
+        paddingLeft: 'max(1.25rem, env(safe-area-inset-left))',
+        paddingRight: 'max(1.25rem, env(safe-area-inset-right))',
+        paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
+        paddingTop: 'max(5.5rem, calc(env(safe-area-inset-top) + 4rem))',
+      }}
+      onClick={() => {
+        if (labsOn && isCoarse()) onLabsLeave()
+      }}
+    >
+      <div className="relative z-10 w-full max-w-xl">
         <p
-          className="mb-5 text-[#00e5ff] sm:mb-6"
+          className="mb-4 text-[#00e5ff] sm:mb-6"
           style={{
-            fontSize: 'clamp(18px, 4vw, 26px)',
+            fontSize: 'clamp(16px, 4.6vw, 26px)',
             lineHeight: 1.35,
             fontWeight: 400,
-            minHeight: 54,
+            minHeight: '2.6em',
           }}
         >
           {displayed}
@@ -82,8 +99,16 @@ export default function Hero({
               key={p.label}
               href={p.href}
               className={pillClass}
-              onMouseEnter={p.label === 'Labs' ? onLabsEnter : undefined}
-              onMouseLeave={p.label === 'Labs' ? onLabsLeave : undefined}
+              onMouseEnter={p.clip ? onLabsEnter : undefined}
+              onMouseLeave={p.clip && !isCoarse() ? onLabsLeave : undefined}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (!p.clip || !isCoarse()) return
+                if (!labsOn) {
+                  e.preventDefault()
+                  onLabsEnter()
+                }
+              }}
             >
               {p.label}
             </a>
@@ -91,10 +116,13 @@ export default function Hero({
 
           <button
             type="button"
-            onClick={copyEmail}
-            className="mx-[0.2em] mb-[0.4em] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[#00e5ff] bg-transparent px-4 py-[0.3em] text-[13px] text-[#00e5ff] transition-colors duration-200 hover:bg-[#00e5ff] hover:text-black sm:gap-3 sm:px-5 sm:text-[15px]"
+            onClick={(e) => {
+              e.stopPropagation()
+              void copyEmail()
+            }}
+            className="mx-[0.15em] mb-[0.45em] inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full border border-[#00e5ff] bg-transparent px-4 py-[0.45em] text-[13px] text-[#00e5ff] transition-colors duration-200 hover:bg-[#00e5ff] hover:text-black sm:min-h-0 sm:gap-3 sm:px-5 sm:text-[15px] sm:py-[0.3em]"
           >
-            <span>
+            <span className="max-w-full truncate">
               Reach us:{' '}
               <span className="underline underline-offset-1">
                 {copied ? 'copied' : EMAIL}
