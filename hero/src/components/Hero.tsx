@@ -2,7 +2,7 @@ import { useEffect, useState, type MouseEvent } from 'react'
 import { useTypewriter } from '../hooks/useTypewriter'
 
 const TYPE_TEXT =
-  'Glad you stopped in. Good taste tends to find us. Now, what are we building?'
+  'Pi Studios. Pictures, systems, and agents — built to stay under control. What are we making?'
 
 const EMAIL = 'info@pistudios.app'
 
