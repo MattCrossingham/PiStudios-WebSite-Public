@@ -21,7 +21,7 @@ Local: ~/workspace/PiStudios/Web Development/pistudios-website/
 - Pills: Labs, Studio. Reach us copies info@pistudios.app.
 - Studio → https://filmdesigns.tv (Star Trip completed movie; Buzz Rogers S1 also there).
 - Shop pill removed 2026-08-31 (parked). Do not restore unless Matt asks.
-- Labs hover/tap plays labs.mp4; click opens /labs.html (full-bleed labs clip + identity, knowledge, agents, production, deploy).
+- Labs hover/tap plays labs.mp4; click opens /labs.html (identity, knowledge, agents, production, deploy).
 - No CloudFront, no Google Fonts, no webfont CDNs. Video/CSS/JS/logo on GitHub only.
 - WOPR/games/dossiers removed from public site 2026-08-28. Do not restore.
 - Helluloid: forget for this shopfront.
