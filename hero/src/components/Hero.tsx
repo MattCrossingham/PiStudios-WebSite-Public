@@ -6,9 +6,9 @@ const TYPE_TEXT =
 
 const EMAIL = 'info@pistudios.app'
 
-const PILLS: { label: string; href?: string; clip: boolean }[] = [
-  { label: 'Labs', href: '/labs.html', clip: true },
-  { label: 'Studio', href: 'https://filmdesigns.tv', clip: false },
+const PILLS: { label: string; href?: string; clip?: 'labs' | 'studio' }[] = [
+  { label: 'Labs', href: '/labs.html', clip: 'labs' },
+  { label: 'Studio', href: 'https://filmdesigns.tv', clip: 'studio' },
 ]
 
 function CopyIcon() {
@@ -25,13 +25,13 @@ function isCoarse() {
 }
 
 export default function Hero({
-  labsOn,
-  onLabsEnter,
-  onLabsLeave,
+  clip,
+  onClipEnter,
+  onClipLeave,
 }: {
-  labsOn: boolean
-  onLabsEnter: () => void
-  onLabsLeave: () => void
+  clip: 'home' | 'labs' | 'studio' | 'knock'
+  onClipEnter: (id: 'labs' | 'studio') => void
+  onClipLeave: () => void
 }) {
   const { displayed, done } = useTypewriter(TYPE_TEXT, 38, 600)
   const [copied, setCopied] = useState(false)
@@ -65,7 +65,7 @@ export default function Hero({
         paddingTop: 'max(5.5rem, calc(env(safe-area-inset-top) + 4rem))',
       }}
       onClick={() => {
-        if (labsOn && isCoarse()) onLabsLeave()
+        if ((clip === 'labs' || clip === 'studio') && isCoarse()) onClipLeave()
       }}
     >
       <div className="relative z-10 w-full max-w-xl">
@@ -93,15 +93,16 @@ export default function Hero({
           }}
         >
           {PILLS.map((p) => {
+            const clipOn = p.clip && clip === p.clip
             const clipHandlers = p.clip
               ? {
-                  onMouseEnter: onLabsEnter,
-                  onMouseLeave: isCoarse() ? undefined : onLabsLeave,
+                  onMouseEnter: () => onClipEnter(p.clip!),
+                  onMouseLeave: isCoarse() ? undefined : onClipLeave,
                   onClick: (e: MouseEvent) => {
                     e.stopPropagation()
-                    if (isCoarse() && !labsOn) {
+                    if (isCoarse() && !clipOn) {
                       e.preventDefault()
-                      onLabsEnter()
+                      onClipEnter(p.clip!)
                     }
                   },
                 }
