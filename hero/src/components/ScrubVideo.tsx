@@ -9,9 +9,11 @@ function canHover() {
 export default function ScrubVideo({
   src,
   playing,
+  muted = true,
 }: {
   src: string
   playing: boolean
+  muted?: boolean
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -92,7 +94,7 @@ export default function ScrubVideo({
       ref={videoRef}
       className="scrub-video"
       src={src}
-      muted
+      muted={muted}
       playsInline
       preload="auto"
     />
