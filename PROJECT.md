@@ -18,9 +18,9 @@ Local: ~/workspace/PiStudios/Web Development/pistudios-website/
 ## Brand lock 2026-08-28
 - Felt wizard full-screen. Mouse-scrubs home clip. Hover Labs plays labs.mp4 loop, leave restores home.
 - Felt pi STUDIOS logo top-left, white knocked out, /logo.png in-repo.
-- Pills: Labs, Studio, Shop. Reach us copies info@pistudios.app.
+- Pills: Labs, Studio. Reach us copies info@pistudios.app.
 - Studio → https://filmdesigns.tv (Star Trip completed movie; Buzz Rogers S1 also there).
-- Shop → https://nospeaky.ai
+- Shop pill removed 2026-08-31 (parked). Do not restore unless Matt asks.
 - Labs hover/tap plays labs.mp4; click opens /labs.html (identity, knowledge, agents, production, deploy).
 - No CloudFront, no Google Fonts, no webfont CDNs. Video/CSS/JS/logo on GitHub only.
 - WOPR/games/dossiers removed from public site 2026-08-28. Do not restore.
@@ -31,7 +31,7 @@ Local: ~/workspace/PiStudios/Web Development/pistudios-website/
 Source: hero/ (React, Vite, Tailwind). Build to dist-hero, copy index.html + assets + public media to repo root for Pages. Git: pull, tag backup, feature branch, PR, never force-push main. After merge prove GitHub main AND live HTML.
 
 ## Wizard clips still due
-Studio, Openings, Shop — Matt making. Same hover-play pattern as Labs.
+Studio, Openings — Matt making. Shop parked. Same hover-play pattern as Labs.
 
 ## Legal reality
 A public page can be screenshotted. Protection is copyright (Pty Ltd, all rights reserved, no licence), not DRM. Homepage assets are first-party.
