@@ -6,7 +6,7 @@ import ScrubVideo from './components/ScrubVideo'
 const HOME = '/hero.mp4?v=4'
 const LABS = '/labs.mp4'
 const STUDIO = '/studio.mp4?v=1'
-const KNOCK = '/knock.mp4?v=1'
+const KNOCK = '/knock.mp4?v=2'
 
 const IDLE_MS = 60_000
 
@@ -23,17 +23,31 @@ export default function App() {
 
   useEffect(() => {
     let t: number | undefined
-    const bump = () => {
-      if (clipRef.current === 'knock') setClip('home')
+    const arm = () => {
       if (t) window.clearTimeout(t)
       t = window.setTimeout(() => setClip('knock'), IDLE_MS)
     }
-    bump()
-    const evs = ['mousemove', 'keydown', 'pointerdown', 'touchstart', 'scroll'] as const
-    evs.forEach((e) => window.addEventListener(e, bump, { passive: true }))
+    const dismiss = () => {
+      if (clipRef.current === 'knock') setClip('home')
+      arm()
+    }
+    const keepAlive = () => {
+      if (clipRef.current === 'knock') return
+      arm()
+    }
+    arm()
+    window.addEventListener('mousemove', keepAlive, { passive: true })
+    window.addEventListener('scroll', keepAlive, { passive: true })
+    window.addEventListener('keydown', dismiss)
+    window.addEventListener('pointerdown', dismiss)
+    window.addEventListener('touchstart', dismiss, { passive: true })
     return () => {
       if (t) window.clearTimeout(t)
-      evs.forEach((e) => window.removeEventListener(e, bump))
+      window.removeEventListener('mousemove', keepAlive)
+      window.removeEventListener('scroll', keepAlive)
+      window.removeEventListener('keydown', dismiss)
+      window.removeEventListener('pointerdown', dismiss)
+      window.removeEventListener('touchstart', dismiss)
     }
   }, [])
 
@@ -42,7 +56,7 @@ export default function App() {
       <video src={LABS} muted playsInline preload="auto" className="hidden" aria-hidden="true" />
       <video src={STUDIO} muted playsInline preload="auto" className="hidden" aria-hidden="true" />
       <video src={KNOCK} muted playsInline preload="auto" className="hidden" aria-hidden="true" />
-      <ScrubVideo src={src} playing={playing} muted={clip !== 'knock'} />
+      <ScrubVideo src={src} playing={playing} muted />
       <Navbar />
       <Hero
         clip={clip}

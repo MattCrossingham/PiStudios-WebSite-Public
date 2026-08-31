@@ -23,9 +23,14 @@ export default function ScrubVideo({
 
     if (playing) {
       video.loop = true
+      video.muted = true
       const start = () => {
         video.currentTime = 0
-        void video.play()
+        const p = video.play()
+        if (p) void p.catch(() => {
+          video.muted = true
+          void video.play()
+        })
       }
       if (video.readyState >= 2) start()
       else video.addEventListener('loadeddata', start, { once: true })
