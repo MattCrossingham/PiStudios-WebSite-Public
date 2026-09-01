@@ -5,7 +5,7 @@ import ScrubVideo from './components/ScrubVideo'
 
 const HOME = '/hero.mp4?v=4'
 const LABS = '/labs.mp4'
-const STUDIO = '/studio.mp4?v=1'
+const STUDIO = '/studio.mp4?v=2'
 const KNOCK = '/knock.mp4?v=2'
 
 const IDLE_MS = 60_000
