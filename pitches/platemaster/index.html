@@ -48,23 +48,27 @@
     padding: 0 28px 48px;
     position: relative;
     overflow: hidden;
+    background: #000 center/cover no-repeat url("water.jpg");
   }
   .hero::before {
     content: "";
     position: absolute;
-    inset: -20% -10% auto -10%;
-    height: 78%;
-    background:
-      radial-gradient(ellipse at 70% 40%, rgba(231,215,177,0.16), transparent 46%),
-      linear-gradient(180deg, transparent, var(--ink));
-    pointer-events: none;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(7,8,10,0.15) 20%, rgba(7,8,10,0.82));
   }
-  .hull {
-    position: absolute;
-    right: -8vw;
-    top: 16vh;
-    width: min(78vw, 980px);
-    opacity: 0.9;
+  .shot {
+    margin: 0;
+    min-height: 72vh;
+    background: #000 center/cover no-repeat;
+    display: flex;
+    align-items: flex-end;
+    padding: 28px;
+  }
+  .shot figcaption {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--heat);
   }
   .kicker {
     position: relative;
@@ -199,11 +203,6 @@
   </nav>
 
   <header class="hero" id="top">
-    <svg class="hull" viewBox="0 0 900 280" aria-hidden="true">
-      <path d="M40 190 C180 188 260 120 430 108 C560 100 690 126 860 92 L860 168 C640 198 470 214 300 206 C170 200 90 196 40 190 Z" fill="none" stroke="#f4f1ea" stroke-width="1.2"/>
-      <path d="M70 176 C220 168 340 132 520 124 C650 120 760 138 850 118" fill="none" stroke="#e7d7b1" stroke-width="0.6" opacity="0.7"/>
-      <path d="M120 168 L760 132" stroke="#f4f1ea" stroke-width="0.4" opacity="0.35"/>
-    </svg>
     <p class="kicker">Aluminium boats · Maryborough</p>
     <h1>Plate<br>Master</h1>
     <div class="deck">
@@ -211,6 +210,10 @@
       <p>Kingfisher and Sports Bridge. Custom fitouts. Fraser Coast water.</p>
     </div>
   </header>
+
+  <figure class="shot" style="background-image:url('plate.jpg')">
+    <figcaption>Demonstration picture. Not their boat.</figcaption>
+  </figure>
 
   <section>
     <p class="label">The range</p>
@@ -247,7 +250,7 @@
   <section class="call" id="call">
     <p class="label">Call the yard</p>
     <a class="phone" href="tel:+61741234244">07 4123 4244</a>
-    <p class="fine">11 Gateway Court, Maryborough, Queensland. That number is on public directories. Their domain, platemaster.com.au, is an empty server page. This page is a Pi Studios demonstration. It is not their live site, and it is not a quote.</p>
+    <p class="fine">11 Gateway Court, Maryborough, Queensland. That number is on public directories. The pictures are generated demonstrations, not photographs of their hulls. Their domain, platemaster.com.au, is an empty server page. This page is a Pi Studios demonstration. It is not their live site, and it is not a quote.</p>
   </section>
 
   <footer>
