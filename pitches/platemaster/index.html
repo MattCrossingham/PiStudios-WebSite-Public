@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PlateMaster — Aluminium boats, Maryborough</title>
-<meta name="description" content="A Pi Studios demonstration for PlateMaster Aluminium Boats. Catalog look. Pictures are stand-ins, not their hulls.">
+<meta name="description" content="A Pi Studios demonstration for PlateMaster Aluminium Boats. Layout follows a yacht-builder catalog. Drawings and words are ours. Not the live platemaster.com.au site.">
 <link rel="icon" href="/logo.png">
 <style>
   :root {
@@ -13,7 +13,7 @@
     --dust: #938080;
     --line: #e6dada;
     --paper: #ffffff;
-    --wash: #f2f2f2;
+    --wash: #f7f4f4;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -23,199 +23,248 @@
     color: var(--ink);
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 16px;
-    line-height: 1.55;
+    line-height: 1.5;
   }
   a { color: inherit; text-decoration: none; }
-  img { display: block; width: 100%; height: auto; }
+  img, svg { display: block; max-width: 100%; }
   .nav {
-    position: absolute;
-    inset: 0 0 auto;
-    z-index: 3;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 28px 60px;
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #fff;
+    padding: 22px 48px;
+    font-size: 13px;
+    letter-spacing: 0.04em;
   }
-  .nav-links { display: flex; gap: 28px; }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .brand {
+    font-family: Palatino, "Palatino Linotype", "Book Antiqua", serif;
+    font-size: 22px;
+    letter-spacing: 0.02em;
+  }
   .hero {
-    min-height: 92vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 0 60px 72px;
+    min-height: 78vh;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: end;
+    gap: 24px;
+    padding: 4vh 48px 64px;
     background:
-      linear-gradient(180deg, rgba(0,6,37,0.08), rgba(0,6,37,0.42)),
-      url("hero.jpg") center/cover no-repeat;
-    color: #fff;
-  }
-  .eyebrow {
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    font-size: 12px;
-    color: #e6dada;
+      radial-gradient(ellipse at 70% 40%, #f3ecec, transparent 55%),
+      linear-gradient(#fff, #f7f4f4);
   }
   h1 {
-    margin: 16px 0 12px;
-    max-width: 14ch;
+    margin: 0;
+    max-width: 11ch;
     font-family: Palatino, "Palatino Linotype", "Book Antiqua", serif;
     font-weight: 400;
-    font-size: clamp(48px, 6.4vw, 84px);
-    line-height: 0.98;
+    font-size: clamp(52px, 6.2vw, 88px);
+    line-height: 0.96;
   }
-  .hero p { max-width: 40ch; margin: 0; font-size: 18px; }
-  .band { padding: 96px 60px; }
-  .band.wash { background: var(--wash); }
-  .split {
+  .hero-note {
+    margin: 18px 0 0;
+    max-width: 36ch;
+    color: var(--muted);
+  }
+  .drawing { width: 100%; height: auto; }
+  .company {
     display: grid;
-    grid-template-columns: 0.8fr 1.2fr;
-    gap: 64px;
+    grid-template-columns: 0.7fr 1.3fr;
+    gap: 48px;
+    padding: 96px 48px;
+  }
+  .eyebrow {
+    margin: 0 0 12px;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--dust);
   }
   h2 {
-    margin: 0;
+    margin: 0 0 16px;
     font-family: Palatino, "Palatino Linotype", "Book Antiqua", serif;
     font-weight: 400;
     font-size: clamp(36px, 4vw, 56px);
     line-height: 1.05;
   }
-  .lede { color: var(--muted); max-width: 48ch; margin: 0; }
-  .range-label {
-    letter-spacing: 0.22em;
+  .lede { margin: 0; max-width: 52ch; color: var(--muted); }
+  .more {
+    display: inline-block;
+    margin-top: 22px;
+    font-size: 14px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    font-size: 12px;
-    color: var(--dust);
-    margin: 0 0 28px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 4px;
+  }
+  .range { padding: 24px 48px 80px; }
+  .range-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 24px;
+    margin-bottom: 28px;
   }
   .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 32px 28px;
+    gap: 28px;
   }
-  .card { border-top: 1px solid var(--line); padding-top: 16px; }
-  .card img { aspect-ratio: 16/10; object-fit: cover; background: #fff; margin: 0 0 18px; }
+  .card { border-top: 1px solid var(--line); padding-top: 18px; }
+  .card .drawing { height: 180px; margin-bottom: 16px; }
   .card h3 { margin: 0 0 8px; font-size: 22px; font-weight: 500; }
   .card p { margin: 0; color: var(--muted); }
-  .meta { margin-top: 14px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dust); }
+  .meta {
+    margin-top: 12px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dust);
+  }
   .yard {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
+    grid-template-columns: 1.15fr 0.85fr;
     gap: 48px;
     align-items: center;
+    padding: 80px 48px;
+    background: var(--wash);
   }
-  .yard img { aspect-ratio: 4/3; object-fit: cover; }
-  .call { text-align: center; padding: 110px 24px 80px; }
-  .call a {
-    display: inline-block;
-    margin-top: 8px;
+  .yard img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+  .call { text-align: center; padding: 100px 24px 72px; }
+  .call a.phone {
     font-family: Palatino, "Palatino Linotype", "Book Antiqua", serif;
     font-size: clamp(40px, 6vw, 72px);
   }
   footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 28px 60px 40px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 24px;
+    padding: 36px 48px 48px;
     border-top: 1px solid var(--line);
     color: var(--dust);
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 13px;
   }
+  footer strong { display: block; color: var(--ink); font-weight: 500; margin-bottom: 8px; }
   @media (max-width: 860px) {
-    .nav, .hero, .band, footer { padding-left: 20px; padding-right: 20px; }
+    .nav, .hero, .company, .range, .yard, footer { padding-left: 20px; padding-right: 20px; }
     .nav-links { display: none; }
-    .split, .cards, .yard, footer { display: block; }
+    .hero, .company, .cards, .yard, footer { display: block; }
     .card { margin-bottom: 28px; }
-    .hero { min-height: 78vh; }
   }
 </style>
 </head>
 <body>
   <nav class="nav">
-    <a href="#top">PlateMaster</a>
+    <a class="brand" href="#top">PlateMaster</a>
     <div class="nav-links">
-      <a href="#range">Range</a>
-      <a href="#yard">Yard</a>
+      <a href="#yard">The yard</a>
+      <a href="#range">The range</a>
       <a href="#call">Call</a>
     </div>
   </nav>
 
   <header class="hero" id="top">
-    <p class="eyebrow">Maryborough · Plate aluminium</p>
-    <h1>Built in plate. Made to be kept.</h1>
-    <p>Kingfisher and Sports Bridge. Custom fitouts. Fraser Coast water. Stand-in picture. Not their boat.</p>
+    <div>
+      <p class="eyebrow">Maryborough</p>
+      <h1>Built in plate. Made to be kept.</h1>
+      <p class="hero-note">Kingfisher and Sports Bridge. Custom fitouts. Fraser Coast water. This drawing is ours. It is not their boat, and it is not a Cosmo yacht.</p>
+    </div>
+    <svg class="drawing" viewBox="0 0 640 360" aria-label="Original line drawing of a plate boat. Not a PlateMaster photograph and not a Cosmo drawing.">
+      <rect width="640" height="360" fill="none"/>
+      <path d="M70 230 C160 228 220 150 340 138 C430 130 520 150 590 128 L582 168 C470 196 360 206 250 198 C150 190 90 196 70 230 Z" fill="none" stroke="#000625" stroke-width="1.4"/>
+      <path d="M150 168 L520 142" fill="none" stroke="#938080" stroke-width="0.8"/>
+      <path d="M210 156 L250 118 L390 112 L430 146" fill="none" stroke="#000625" stroke-width="1.1"/>
+      <path d="M268 118 L268 146 M340 114 L340 144" fill="none" stroke="#000625" stroke-width="0.8"/>
+      <circle cx="560" cy="150" r="10" fill="none" stroke="#000625" stroke-width="1"/>
+    </svg>
   </header>
 
-  <section class="band">
-    <div class="split">
-      <h2>The yard</h2>
+  <section class="company" id="yard">
+    <h2>The yard</h2>
+    <div>
       <p class="lede">PlateMaster builds, repairs and modifies aluminium boats in Maryborough. Plate hulls. Cabins, consoles, pods, canopies, electronics and colour. Custom work, not a shop you click and forget.</p>
+      <a class="more" href="#range">The range</a>
     </div>
   </section>
 
-  <section class="band wash" id="range">
-    <p class="range-label">The range</p>
+  <section class="range" id="range">
+    <div class="range-head">
+      <div>
+        <p class="eyebrow">The range</p>
+        <h2>Five hulls.</h2>
+      </div>
+    </div>
     <div class="cards">
       <article class="card">
-        <img src="tinny.jpg" alt="Stand-in picture of a small aluminium boat. Not a PlateMaster hull.">
+        <svg class="drawing" viewBox="0 0 320 180" aria-hidden="true"><path d="M20 120 C70 118 100 78 160 72 C210 68 260 80 300 68 L296 92 C230 108 160 114 90 108 C50 104 28 108 20 120 Z" fill="none" stroke="#000625" stroke-width="1.2"/></svg>
         <h3>Kingfisher 5200</h3>
         <p>The short hull. Ask the yard what it is rigged for.</p>
-        <p class="meta">5.2 m · Stand-in picture</p>
+        <p class="meta">5.2 m</p>
+        <a class="more" href="#call">Call the yard</a>
       </article>
       <article class="card">
-        <img src="hero.jpg" alt="Stand-in picture of an aluminium boat. Not a PlateMaster hull.">
+        <svg class="drawing" viewBox="0 0 320 180" aria-hidden="true"><path d="M16 124 C80 120 120 70 180 64 C230 60 270 74 306 64 L300 96 C220 116 140 122 70 112 C40 108 24 112 16 124 Z" fill="none" stroke="#000625" stroke-width="1.2"/><path d="M120 78 L150 52 L210 50 L230 74" fill="none" stroke="#000625" stroke-width="1"/></svg>
         <h3>Kingfisher 7000</h3>
         <p>A family fishing hull in their listed range.</p>
-        <p class="meta">7.0 m · Stand-in picture</p>
+        <p class="meta">7.0 m</p>
+        <a class="more" href="#call">Call the yard</a>
       </article>
       <article class="card">
-        <img src="tinny.jpg" alt="">
+        <svg class="drawing" viewBox="0 0 320 180" aria-hidden="true"><path d="M18 126 C90 122 130 68 190 62 C240 58 280 72 308 62 L302 98 C230 118 150 124 70 114 C40 110 24 114 18 126 Z" fill="none" stroke="#000625" stroke-width="1.2"/><path d="M130 74 L156 48 L220 46 L242 72" fill="none" stroke="#000625" stroke-width="1"/></svg>
         <h3>Kingfisher 7300</h3>
         <p>Listed with the longer Kingfisher hulls.</p>
         <p class="meta">7.3 m</p>
+        <a class="more" href="#call">Call the yard</a>
       </article>
       <article class="card">
-        <img src="hero.jpg" alt="">
+        <svg class="drawing" viewBox="0 0 320 180" aria-hidden="true"><path d="M12 128 C80 122 130 64 200 56 C250 52 286 66 310 56 L304 100 C220 122 130 128 60 116 C32 110 18 116 12 128 Z" fill="none" stroke="#000625" stroke-width="1.2"/><path d="M140 70 L168 42 L230 40 L254 68" fill="none" stroke="#000625" stroke-width="1"/></svg>
         <h3>Kingfisher 8400</h3>
         <p>The long plate hull. Custom fitout.</p>
         <p class="meta">8.4 m</p>
+        <a class="more" href="#call">Call the yard</a>
       </article>
       <article class="card">
-        <img src="hero.jpg" alt="">
+        <svg class="drawing" viewBox="0 0 320 180" aria-hidden="true"><path d="M16 126 C86 122 130 66 196 58 C246 54 284 68 308 58 L302 98 C224 118 140 126 64 114 C36 108 22 114 16 126 Z" fill="none" stroke="#000625" stroke-width="1.2"/><path d="M150 58 L150 28 L230 26 L230 56" fill="none" stroke="#000625" stroke-width="1.1"/></svg>
         <h3>Sports Bridge 8000</h3>
         <p>Their sports bridge. Ask what the bridge carries.</p>
         <p class="meta">8.0 m</p>
+        <a class="more" href="#call">Call the yard</a>
       </article>
       <article class="card">
         <h3>The work</h3>
         <p>Build. Repair. Modify. A lifetime warranty is on their listing. Ask what it covers before you buy.</p>
         <p class="meta">Maryborough</p>
+        <a class="more" href="#call">Call the yard</a>
       </article>
     </div>
   </section>
 
-  <section class="band" id="yard">
-    <div class="yard">
-      <img src="hero.jpg" alt="Stand-in picture. Not their boat.">
-      <div>
-        <p class="range-label">Where</p>
-        <h2>11 Gateway Court</h2>
-        <p class="lede">Maryborough, Queensland. The number is on public directories. Their domain is an empty server page. These pictures are stand-ins. They are not photographs of their hulls.</p>
-      </div>
+  <section class="yard">
+    <img src="hero.jpg" alt="Stand-in photograph of an aluminium boat. Not a PlateMaster hull and not a Cosmo yacht.">
+    <div>
+      <p class="eyebrow">Where</p>
+      <h2>11 Gateway Court</h2>
+      <p class="lede">Maryborough, Queensland. The number is on public directories. Their domain is an empty server page. The photograph is a stand-in. The line drawings are original. Neither is a photograph of their hulls, and neither is taken from Cosmo Marine.</p>
     </div>
   </section>
 
   <section class="call" id="call">
-    <p class="range-label">Call the yard</p>
-    <a href="tel:+61741234244">07 4123 4244</a>
+    <p class="eyebrow">Call the yard</p>
+    <a class="phone" href="tel:+61741234244">07 4123 4244</a>
   </section>
 
   <footer>
-    <span>Pi Studios demonstration. Not a quote.</span>
-    <a href="mailto:info@pistudios.app">info@pistudios.app</a>
+    <div>
+      <strong>PlateMaster</strong>
+      Pi Studios demonstration. Not a quote. Not their live site.
+    </div>
+    <div>
+      <strong>Range</strong>
+      Kingfisher 5200, 7000, 7300, 8400. Sports Bridge 8000.
+    </div>
+    <div>
+      <strong>Studio</strong>
+      <a href="mailto:info@pistudios.app">info@pistudios.app</a>
+    </div>
   </footer>
 </body>
 </html>
