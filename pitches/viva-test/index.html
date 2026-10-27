@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Viva Energy — test</title>
+  <style>
+    :root { --amber: #ffb15a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #050505; color: #f4f1ea; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    .top {
+      position: fixed;
+      z-index: 5;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 22px 28px;
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      mix-blend-mode: difference;
+    }
+    .top a { text-decoration: none; }
+    .count {
+      position: fixed;
+      z-index: 5;
+      right: 28px;
+      bottom: 24px;
+      font-size: 13px;
+      letter-spacing: .16em;
+      mix-blend-mode: difference;
+    }
+    .chapter { height: 180vh; }
+    .stage {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      height: 100svh;
+      overflow: hidden;
+      background: #050505;
+    }
+    .stage img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(var(--s, 1.08));
+      opacity: var(--fade, 1);
+      will-change: transform, opacity;
+    }
+    .copy {
+      position: absolute;
+      left: 7vw;
+      bottom: 14vh;
+      z-index: 2;
+      max-width: 14ch;
+      opacity: var(--read, 1);
+      transform: translateY(calc((1 - var(--read, 0)) * 18px));
+    }
+    h1 {
+      margin: 0;
+      font-weight: 560;
+      font-size: clamp(3.4rem, 9vw, 8.4rem);
+      line-height: .9;
+      letter-spacing: -.045em;
+    }
+    h1 em { font-style: italic; font-weight: 450; color: var(--amber); }
+    .sub {
+      margin: 18px 0 0;
+      max-width: 28ch;
+      font-size: 16px;
+      line-height: 1.45;
+      color: rgba(244,241,234,.78);
+    }
+    .go {
+      display: inline-block;
+      margin-top: 28px;
+      padding: 14px 22px;
+      border-radius: 999px;
+      background: var(--amber);
+      color: #1a1006;
+      text-decoration: none;
+      font-weight: 650;
+      letter-spacing: .02em;
+    }
+    .note {
+      padding: 28px 7vw 48px;
+      color: rgba(244,241,234,.5);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    @media (max-width: 700px) {
+      .copy { left: 22px; right: 22px; max-width: none; bottom: 12vh; }
+      h1 { font-size: clamp(3rem, 16vw, 5rem); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .stage img { transform: none; }
+      .copy { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <span>Viva Energy</span>
+    <a href="https://www.vivaenergy.com.au/">Their site</a>
+  </div>
+  <div class="count" id="count">01 / 04</div>
+
+  <section class="chapter">
+    <div class="stage">
+      <img src="img/flame.jpg" alt="Stand-in flame. Not a Viva Energy photograph." />
+      <div class="copy">
+        <h1>Keep <em>moving.</em></h1>
+      </div>
+    </div>
+  </section>
+  <section class="chapter">
+    <div class="stage">
+      <img src="img/heat.jpg" alt="Stand-in of heat on metal. Not their plant." />
+      <div class="copy">
+        <h1>Heat, <em>then fuel.</em></h1>
+        <p class="sub">They refine, import, and deliver it.</p>
+      </div>
+    </div>
+  </section>
+  <section class="chapter">
+    <div class="stage">
+      <img src="img/road.jpg" alt="Stand-in of a night road. Not their forecourt." />
+      <div class="copy">
+        <h1>Shell <em>and Liberty.</em></h1>
+        <p class="sub">The servo is where the road stops.</p>
+      </div>
+    </div>
+  </section>
+  <section class="chapter">
+    <div class="stage">
+      <img src="img/flame.jpg" alt="" />
+      <div class="copy">
+        <h1>A <em>test.</em></h1>
+        <p class="sub">Pi Studios. Not their site. Not a quote.</p>
+        <a class="go" href="https://www.vivaenergy.com.au/">vivaenergy.com.au</a>
+      </div>
+    </div>
+  </section>
+  <p class="note">Pictures are generated stand-ins. Grok Imagine was not available for a film, so the stills move on the scroll. No phone was invented.</p>
+  <script>
+    (function () {
+      var chapters = [].slice.call(document.querySelectorAll('.chapter'));
+      var count = document.getElementById('count');
+      function tick() {
+        var active = 1;
+        chapters.forEach(function (ch, i) {
+          var stage = ch.querySelector('.stage');
+          var img = ch.querySelector('img');
+          var copy = ch.querySelector('.copy');
+          var rect = ch.getBoundingClientRect();
+          var span = Math.max(1, ch.offsetHeight - window.innerHeight);
+          var p = Math.min(1, Math.max(0, -rect.top / span));
+          var atTop = rect.top > -30 && rect.top < 40;
+          var read = atTop ? 1 : Math.min(1, Math.max(0, (p - 0.12) / 0.28));
+          stage.style.setProperty('--s', (1.12 - p * 0.08).toFixed(3));
+          stage.style.setProperty('--read', read.toFixed(3));
+          img.style.transform = 'scale(' + (1.12 - p * 0.08) + ')';
+          copy.style.opacity = String(read);
+          copy.style.transform = 'translateY(' + ((1 - read) * 18) + 'px)';
+          if (rect.top < window.innerHeight * 0.45 && rect.bottom > window.innerHeight * 0.45) active = i + 1;
+        });
+        count.textContent = String(active).padStart(2, '0') + ' / 04';
+      }
+      addEventListener('scroll', tick, { passive: true });
+      tick();
+    })();
+  </script>
+</body>
+</html>
