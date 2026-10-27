@@ -3,258 +3,218 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PlateMaster — Built for life</title>
-<meta name="description" content="A Pi Studios demonstration for PlateMaster Aluminium Boats, Maryborough. Not the live platemaster.com.au site.">
+<title>PlateMaster — Aluminium boats, Maryborough</title>
+<meta name="description" content="A Pi Studios demonstration for PlateMaster Aluminium Boats. Catalog look. Pictures are stand-ins, not their hulls.">
 <link rel="icon" href="/logo.png">
 <style>
   :root {
-    --ink: #07080a;
-    --paper: #f4f1ea;
-    --metal: #c8c2b8;
-    --dim: #8d877e;
-    --line: rgba(244,241,234,0.16);
-    --heat: #e7d7b1;
+    --ink: #000625;
+    --muted: #425360;
+    --dust: #938080;
+    --line: #e6dada;
+    --paper: #ffffff;
+    --wash: #f2f2f2;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--paper);
+    color: var(--ink);
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-weight: 400;
-    letter-spacing: 0;
+    font-size: 16px;
+    line-height: 1.55;
   }
-  a { color: inherit; }
-  .top {
-    position: fixed;
-    z-index: 4;
-    top: 0; left: 0; right: 0;
+  a { color: inherit; text-decoration: none; }
+  img { display: block; width: 100%; height: auto; }
+  .nav {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 3;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 22px 28px;
-    mix-blend-mode: difference;
-    font-size: 11px;
-    letter-spacing: 0.22em;
+    padding: 28px 60px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
+    color: #fff;
   }
-  .top a { text-decoration: none; }
+  .nav-links { display: flex; gap: 28px; }
   .hero {
-    min-height: 100svh;
+    min-height: 92vh;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 0 28px 48px;
-    position: relative;
-    overflow: hidden;
-    background: #000 center/cover no-repeat url("water.jpg");
+    padding: 0 60px 72px;
+    background:
+      linear-gradient(180deg, rgba(0,6,37,0.08), rgba(0,6,37,0.42)),
+      url("hero.jpg") center/cover no-repeat;
+    color: #fff;
   }
-  .hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(7,8,10,0.15) 20%, rgba(7,8,10,0.82));
-  }
-  .shot {
-    margin: 0;
-    min-height: 72vh;
-    background: #000 center/cover no-repeat;
-    display: flex;
-    align-items: flex-end;
-    padding: 28px;
-  }
-  .shot figcaption {
-    font-size: 12px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--heat);
-  }
-  .kicker {
-    position: relative;
-    font-size: 12px;
+  .eyebrow {
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: var(--heat);
+    font-size: 12px;
+    color: #e6dada;
   }
   h1 {
-    position: relative;
-    margin: 12px 0 0;
-    font-size: clamp(64px, 16vw, 220px);
-    line-height: 0.82;
-    font-weight: 500;
-    letter-spacing: -0.045em;
+    margin: 16px 0 12px;
+    max-width: 14ch;
+    font-family: Palatino, "Palatino Linotype", "Book Antiqua", serif;
+    font-weight: 400;
+    font-size: clamp(48px, 6.4vw, 84px);
+    line-height: 0.98;
   }
-  .deck {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    gap: 24px;
-    margin-top: 28px;
-    max-width: 920px;
-    color: var(--metal);
-    font-size: 18px;
-    line-height: 1.45;
-  }
-  .deck p { margin: 0; max-width: 36ch; }
-  section { padding: 12vh 28px; }
-  .label {
-    font-size: 11px;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 28px;
-  }
-  .models {
+  .hero p { max-width: 40ch; margin: 0; font-size: 18px; }
+  .band { padding: 96px 60px; }
+  .band.wash { background: var(--wash); }
+  .split {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 48px;
-    align-items: end;
-    border-top: 1px solid var(--line);
-    padding-top: 28px;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 64px;
   }
-  .models h2 {
+  h2 {
     margin: 0;
-    font-size: clamp(42px, 6vw, 88px);
-    font-weight: 500;
-    letter-spacing: -0.04em;
-    line-height: 0.9;
+    font-family: Palatino, "Palatino Linotype", "Book Antiqua", serif;
+    font-weight: 400;
+    font-size: clamp(36px, 4vw, 56px);
+    line-height: 1.05;
   }
-  .rail {
-    display: grid;
-    gap: 0;
+  .lede { color: var(--muted); max-width: 48ch; margin: 0; }
+  .range-label {
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: var(--dust);
+    margin: 0 0 28px;
   }
-  .rail a, .rail div {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 16px;
-    padding: 18px 0;
-    border-bottom: 1px solid var(--line);
-    text-decoration: none;
-    font-size: 22px;
-    letter-spacing: -0.03em;
-  }
-  .rail span { color: var(--dim); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; align-self: center; }
-  .work {
+  .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--line);
-    border: 1px solid var(--line);
+    gap: 32px 28px;
   }
-  .work article {
-    background: var(--ink);
-    min-height: 220px;
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+  .card { border-top: 1px solid var(--line); padding-top: 16px; }
+  .card img { aspect-ratio: 16/10; object-fit: cover; background: #fff; margin: 0 0 18px; }
+  .card h3 { margin: 0 0 8px; font-size: 22px; font-weight: 500; }
+  .card p { margin: 0; color: var(--muted); }
+  .meta { margin-top: 14px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dust); }
+  .yard {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px;
+    align-items: center;
   }
-  .work strong {
-    font-size: 28px;
-    font-weight: 500;
-    letter-spacing: -0.03em;
-  }
-  .work p { margin: 12px 0 0; color: var(--metal); line-height: 1.4; }
-  .call {
-    min-height: 70vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    border-top: 1px solid var(--line);
-  }
-  .call a.phone {
-    font-size: clamp(40px, 7vw, 96px);
-    letter-spacing: -0.045em;
-    text-decoration: none;
-    font-weight: 500;
-  }
-  .fine {
-    margin-top: 36px;
-    max-width: 62ch;
-    color: var(--dim);
-    font-size: 14px;
-    line-height: 1.5;
+  .yard img { aspect-ratio: 4/3; object-fit: cover; }
+  .call { text-align: center; padding: 110px 24px 80px; }
+  .call a {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: Palatino, "Palatino Linotype", "Book Antiqua", serif;
+    font-size: clamp(40px, 6vw, 72px);
   }
   footer {
-    padding: 28px;
     display: flex;
     justify-content: space-between;
     gap: 16px;
-    color: var(--dim);
+    padding: 28px 60px 40px;
+    border-top: 1px solid var(--line);
+    color: var(--dust);
     font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    border-top: 1px solid var(--line);
   }
-  @media (max-width: 800px) {
-    .deck, .models, .work, footer { display: block; }
-    .work article { border-bottom: 1px solid var(--line); }
-    .hull { top: 10vh; opacity: 0.55; }
-    .top { padding: 16px; }
-    section, .hero { padding-left: 16px; padding-right: 16px; }
+  @media (max-width: 860px) {
+    .nav, .hero, .band, footer { padding-left: 20px; padding-right: 20px; }
+    .nav-links { display: none; }
+    .split, .cards, .yard, footer { display: block; }
+    .card { margin-bottom: 28px; }
+    .hero { min-height: 78vh; }
   }
 </style>
 </head>
 <body>
-  <nav class="top">
+  <nav class="nav">
     <a href="#top">PlateMaster</a>
-    <a href="#call">Maryborough</a>
+    <div class="nav-links">
+      <a href="#range">Range</a>
+      <a href="#yard">Yard</a>
+      <a href="#call">Call</a>
+    </div>
   </nav>
 
   <header class="hero" id="top">
-    <p class="kicker">Aluminium boats · Maryborough</p>
-    <h1>Plate<br>Master</h1>
-    <div class="deck">
-      <p>Built, repaired and modified in plate. Not a catalogue. A yard.</p>
-      <p>Kingfisher and Sports Bridge. Custom fitouts. Fraser Coast water.</p>
-    </div>
+    <p class="eyebrow">Maryborough · Plate aluminium</p>
+    <h1>Built in plate. Made to be kept.</h1>
+    <p>Kingfisher and Sports Bridge. Custom fitouts. Fraser Coast water. Stand-in picture. Not their boat.</p>
   </header>
 
-  <figure class="shot" style="background-image:url('plate.jpg')">
-    <figcaption>Demonstration picture. Not their boat.</figcaption>
-  </figure>
+  <section class="band">
+    <div class="split">
+      <h2>The yard</h2>
+      <p class="lede">PlateMaster builds, repairs and modifies aluminium boats in Maryborough. Plate hulls. Cabins, consoles, pods, canopies, electronics and colour. Custom work, not a shop you click and forget.</p>
+    </div>
+  </section>
 
-  <section>
-    <p class="label">The range</p>
-    <div class="models">
-      <h2>Five hulls. One plate.</h2>
-      <div class="rail">
-        <div>Kingfisher 5200 <span>5.2 m</span></div>
-        <div>Kingfisher 7000 <span>7.0 m</span></div>
-        <div>Kingfisher 7300 <span>7.3 m</span></div>
-        <div>Kingfisher 8400 <span>8.4 m</span></div>
-        <div>Sports Bridge 8000 <span>8.0 m</span></div>
+  <section class="band wash" id="range">
+    <p class="range-label">The range</p>
+    <div class="cards">
+      <article class="card">
+        <img src="tinny.jpg" alt="Stand-in picture of a small aluminium boat. Not a PlateMaster hull.">
+        <h3>Kingfisher 5200</h3>
+        <p>The short hull. Ask the yard what it is rigged for.</p>
+        <p class="meta">5.2 m · Stand-in picture</p>
+      </article>
+      <article class="card">
+        <img src="hero.jpg" alt="Stand-in picture of an aluminium boat. Not a PlateMaster hull.">
+        <h3>Kingfisher 7000</h3>
+        <p>A family fishing hull in their listed range.</p>
+        <p class="meta">7.0 m · Stand-in picture</p>
+      </article>
+      <article class="card">
+        <img src="tinny.jpg" alt="">
+        <h3>Kingfisher 7300</h3>
+        <p>Listed with the longer Kingfisher hulls.</p>
+        <p class="meta">7.3 m</p>
+      </article>
+      <article class="card">
+        <img src="hero.jpg" alt="">
+        <h3>Kingfisher 8400</h3>
+        <p>The long plate hull. Custom fitout.</p>
+        <p class="meta">8.4 m</p>
+      </article>
+      <article class="card">
+        <img src="hero.jpg" alt="">
+        <h3>Sports Bridge 8000</h3>
+        <p>Their sports bridge. Ask what the bridge carries.</p>
+        <p class="meta">8.0 m</p>
+      </article>
+      <article class="card">
+        <h3>The work</h3>
+        <p>Build. Repair. Modify. A lifetime warranty is on their listing. Ask what it covers before you buy.</p>
+        <p class="meta">Maryborough</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="band" id="yard">
+    <div class="yard">
+      <img src="hero.jpg" alt="Stand-in picture. Not their boat.">
+      <div>
+        <p class="range-label">Where</p>
+        <h2>11 Gateway Court</h2>
+        <p class="lede">Maryborough, Queensland. The number is on public directories. Their domain is an empty server page. These pictures are stand-ins. They are not photographs of their hulls.</p>
       </div>
     </div>
   </section>
 
-  <section>
-    <p class="label">The yard</p>
-    <div class="work">
-      <article>
-        <strong>Build</strong>
-        <p>Plate aluminium hulls. Custom designs. Cabins, consoles, pods and canopies.</p>
-      </article>
-      <article>
-        <strong>Repair</strong>
-        <p>Modify what you already own. Rails, electronics, colour, engines, fitouts.</p>
-      </article>
-      <article>
-        <strong>Keep</strong>
-        <p>Lifetime warranty is on their listing. Ask them what it covers before you buy.</p>
-      </article>
-    </div>
-  </section>
-
   <section class="call" id="call">
-    <p class="label">Call the yard</p>
-    <a class="phone" href="tel:+61741234244">07 4123 4244</a>
-    <p class="fine">11 Gateway Court, Maryborough, Queensland. That number is on public directories. The pictures are generated demonstrations, not photographs of their hulls. Their domain, platemaster.com.au, is an empty server page. This page is a Pi Studios demonstration. It is not their live site, and it is not a quote.</p>
+    <p class="range-label">Call the yard</p>
+    <a href="tel:+61741234244">07 4123 4244</a>
   </section>
 
   <footer>
-    <span>Pi Studios demonstration</span>
+    <span>Pi Studios demonstration. Not a quote.</span>
     <a href="mailto:info@pistudios.app">info@pistudios.app</a>
   </footer>
 </body>
