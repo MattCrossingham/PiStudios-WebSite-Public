@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>M3 Hair &amp; Beauty — Pi Studios test (not the official site)</title>
+<meta name="description" content="A Pi Studios design test for M3 Hair &amp; Beauty, Doncaster East. Not the official M3 site. Not affiliated.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12100E">
+<style>
+  :root {
+    --ink: #12100E;
+    --bone: #E7E1D6;
+    --brass: #C4A574;
+    --rose: #8C3A32;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --pad: clamp(1.25rem, 5vw, 4rem);
+    --vh: 100vh;
+  }
+  @supports (height: 100svh) { :root { --vh: 100svh; } }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { background: var(--ink); color-scheme: dark; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--bone);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  img { display: block; max-width: 100%; }
+
+  /* Test label — always visible */
+  .test-flag {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 20;
+    padding: .55rem var(--pad);
+    padding-top: max(.55rem, env(safe-area-inset-top));
+    font: 500 .68rem/1.3 var(--sans);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--brass);
+    text-align: center;
+  }
+
+  /* Progress counter */
+  .counter {
+    position: fixed;
+    right: var(--pad);
+    bottom: max(var(--pad), env(safe-area-inset-bottom));
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font: 500 .75rem/1 var(--sans);
+    letter-spacing: .18em;
+    color: var(--bone);
+    mix-blend-mode: difference;
+  }
+  .counter__bar {
+    width: clamp(3rem, 12vw, 7rem);
+    height: 1px;
+    background: rgba(231, 225, 214, .3);
+    position: relative;
+    overflow: hidden;
+  }
+  .counter__bar span {
+    position: absolute; inset: 0;
+    background: var(--bone);
+    transform-origin: left;
+    transform: scaleX(var(--total, 0));
+  }
+
+  /* Chapters */
+  .chapter {
+    position: relative;
+    height: calc(var(--vh) * 2.2);
+    --p: 0;
+  }
+  .stage {
+    position: sticky;
+    top: 0;
+    height: var(--vh);
+    overflow: hidden;
+    display: grid;
+    align-items: end;
+  }
+  .stage__img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transform: scale(calc(1.18 - var(--p) * .18));
+    will-change: transform;
+  }
+  .stage::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to top, rgba(18,16,14,.92) 0%, rgba(18,16,14,.45) 40%, rgba(18,16,14,.15) 70%, rgba(18,16,14,.55) 100%);
+    pointer-events: none;
+  }
+  .copy {
+    position: relative;
+    z-index: 2;
+    padding: var(--pad);
+    padding-bottom: calc(var(--pad) + 3.5rem);
+    max-width: 62rem;
+  }
+  .label {
+    display: block;
+    font: 500 .75rem/1 var(--sans);
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 1.4rem;
+  }
+  h1, h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(2.6rem, 8.5vw, 7rem);
+    line-height: .98;
+    letter-spacing: -.02em;
+    margin: 0 0 1.4rem;
+    text-wrap: balance;
+  }
+  h1 em, h2 em { font-style: italic; color: var(--brass); }
+  .copy p {
+    font-size: clamp(1rem, 1.6vw, 1.2rem);
+    line-height: 1.6;
+    max-width: 34rem;
+    margin: 0;
+    color: rgba(231, 225, 214, .82);
+  }
+
+  /* Text fades up as the chapter arrives */
+  .reveal {
+    opacity: 0;
+    transform: translateY(2.5rem);
+    transition: opacity 1.1s ease, transform 1.1s cubic-bezier(.2, .7, .2, 1);
+  }
+  .reveal:nth-child(2) { transition-delay: .12s; }
+  .reveal:nth-child(3) { transition-delay: .24s; }
+  .reveal:nth-child(4) { transition-delay: .36s; }
+  .chapter.is-in .reveal { opacity: 1; transform: none; }
+
+  /* Per-image framing so portrait crops keep the subject */
+  .ch1 .stage__img { object-position: 42% 60%; }
+  .ch2 .stage__img { object-position: 45% 50%; }
+  .ch3 .stage__img { object-position: 38% 50%; }
+
+  /* Chapter 4 — type only, on ink */
+  .ch4 .stage { align-items: center; }
+  .ch4 .stage::after {
+    background: radial-gradient(ellipse at 50% 120%, rgba(140,58,50,.35) 0%, rgba(18,16,14,0) 60%);
+  }
+  .ch4 .copy { margin: 0 auto; text-align: center; padding-bottom: var(--pad); }
+  .ch4 .copy p { margin: 0 auto; }
+  .rule {
+    width: 3rem; height: 1px;
+    background: var(--brass);
+    margin: 2rem auto;
+    border: 0;
+  }
+  .visit {
+    font: 500 .8rem/1.8 var(--sans);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--bone);
+  }
+  .book {
+    display: inline-flex;
+    gap: .6rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+  .book span {
+    padding: .9rem 1.4rem;
+    border: 1px solid rgba(196, 165, 116, .55);
+    font: 500 .72rem/1 var(--sans);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+
+  footer {
+    padding: 2.5rem var(--pad) calc(2.5rem + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(231, 225, 214, .12);
+    font: .75rem/1.6 var(--sans);
+    color: rgba(231, 225, 214, .55);
+    text-align: center;
+  }
+
+  /* Portrait / narrow screens */
+  @media (max-aspect-ratio: 4/5), (max-width: 640px) {
+    .chapter { height: calc(var(--vh) * 1.8); }
+    .copy { padding-bottom: calc(var(--pad) + 4rem); }
+    .stage::after {
+      background: linear-gradient(to top, rgba(18,16,14,.95) 0%, rgba(18,16,14,.6) 45%, rgba(18,16,14,.2) 75%, rgba(18,16,14,.6) 100%);
+    }
+    .ch1 .stage__img { object-position: 40% 55%; }
+    .ch2 .stage__img { object-position: 42% 50%; }
+    .ch3 .stage__img { object-position: 30% 50%; }
+  }
+
+  /* Reduced motion: no pinning, no zoom, no fades */
+  @media (prefers-reduced-motion: reduce) {
+    .chapter { height: auto; }
+    .stage { position: relative; min-height: var(--vh); height: auto; }
+    .stage__img { transform: none; will-change: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="test-flag" role="note">Pi Studios test — not the official M3 site · Not affiliated</div>
+
+<div class="counter" aria-hidden="true">
+  <span class="counter__num">01</span>
+  <span class="counter__bar"><span></span></span>
+  <span>04</span>
+</div>
+
+<main>
+  <section class="chapter ch1" aria-labelledby="h-ch1">
+    <div class="stage">
+      <img class="stage__img" src="assets/hero.webp" alt="An empty black leather chair beside a brass lamp and dried roses, rain on a night window behind." width="1280" height="648" fetchpriority="high">
+      <div class="copy">
+        <span class="label reveal">01 — The Chair</span>
+        <h1 id="h-ch1" class="reveal">M3 Hair &amp; Beauty. A seat kept <em>warm</em> on Renshaw Street.</h1>
+        <p class="reveal">A small salon in Doncaster East. Lamp on, kettle on, chair ready.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter ch2" aria-labelledby="h-ch2">
+    <div class="stage">
+      <img class="stage__img" src="assets/detail.webp" alt="Silver scissors with brass details and a black comb resting on wet dark stone." width="1280" height="648" loading="lazy">
+      <div class="copy">
+        <span class="label reveal">02 — The Craft</span>
+        <h2 id="h-ch2" class="reveal">Every cut, made <em>slowly</em>.</h2>
+        <p class="reveal">Clean tools, a steady hand and time to listen before the first snip.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter ch3" aria-labelledby="h-ch3">
+    <div class="stage">
+      <img class="stage__img" src="assets/silk.webp" alt="Ribbons of black, cream, gold and dusty rose silk twisting through dark air." width="1280" height="648" loading="lazy">
+      <div class="copy">
+        <span class="label reveal">03 — The Finish</span>
+        <h2 id="h-ch3" class="reveal">Colour that moves like <em>silk</em>.</h2>
+        <p class="reveal">Hair and beauty finished with care, so it still looks right a week later.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter ch4" aria-labelledby="h-ch4">
+    <div class="stage">
+      <div class="copy">
+        <span class="label reveal">04 — The Visit</span>
+        <h2 id="h-ch4" class="reveal">Your chair is <em>waiting</em>.</h2>
+        <div class="reveal">
+          <hr class="rule">
+          <p class="visit">74 Renshaw Street<br>Doncaster East</p>
+          <div class="book" aria-label="Booking options (links to be added)">
+            <span>Book on Fresha</span>
+            <span>Message on Facebook</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  A Pi Studios design test for M3 Hair &amp; Beauty. Not the official M3 site. Not affiliated. The pictures are a demonstration, not photographs of the salon.
+</footer>
+
+<script>
+(function () {
+  var chapters = Array.prototype.slice.call(document.querySelectorAll('.chapter'));
+  var num = document.querySelector('.counter__num');
+  var counter = document.querySelector('.counter');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var ticking = false;
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function update() {
+    ticking = false;
+    var vh = window.innerHeight;
+    var current = 0;
+    chapters.forEach(function (ch, i) {
+      var r = ch.getBoundingClientRect();
+      var span = Math.max(r.height - vh, 1);
+      var p = Math.min(Math.max(-r.top / span, 0), 1);
+      if (!reduce.matches) ch.style.setProperty('--p', p.toFixed(4));
+      if (r.top < vh * 0.6 && r.bottom > vh * 0.4) current = i;
+      if (r.top < vh * 0.7) ch.classList.add('is-in');
+    });
+    num.textContent = pad(current + 1);
+    var doc = document.documentElement;
+    var total = window.scrollY / Math.max(doc.scrollHeight - vh, 1);
+    counter.style.setProperty('--total', Math.min(Math.max(total, 0), 1).toFixed(4));
+  }
+
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  if (reduce.addEventListener) reduce.addEventListener('change', function () {
+    chapters.forEach(function (ch) { ch.style.removeProperty('--p'); });
+    update();
+  });
+  update();
+})();
+</script>
+</body>
+</html>
