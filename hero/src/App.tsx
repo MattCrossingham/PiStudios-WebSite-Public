@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Hero from './components/Hero'
 import Navbar from './components/Navbar'
 import ScrubVideo from './components/ScrubVideo'
+import Services from './components/Services'
 
 const HOME = '/hero.mp4?v=4'
 const LABS = '/labs.mp4'
@@ -58,11 +59,14 @@ export default function App() {
       <video src={KNOCK} muted playsInline preload="auto" className="hidden" aria-hidden="true" />
       <ScrubVideo src={src} playing={playing} muted />
       <Navbar />
-      <Hero
-        clip={clip}
-        onClipEnter={(id) => setClip(id)}
-        onClipLeave={() => setClip((c) => (c === 'knock' ? c : 'home'))}
-      />
+      <main>
+        <Hero
+          clip={clip}
+          onClipEnter={(id) => setClip(id)}
+          onClipLeave={() => setClip((c) => (c === 'knock' ? c : 'home'))}
+        />
+        <Services />
+      </main>
     </>
   )
 }
